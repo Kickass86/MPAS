@@ -14,7 +14,6 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 
 
-
     @SuppressWarnings("deprecation")
     public static String getUniquePsuedoID() {
 
