@@ -13,6 +13,9 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
+
+
+    @SuppressWarnings("deprecation")
     public static String getUniquePsuedoID() {
 
         String m_szDevIDShort;
@@ -21,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
         }
         else
         {
+
             m_szDevIDShort = "35" + (Build.BOARD.length() % 10) + (Build.BRAND.length() % 10) + (Build.CPU_ABI.length() % 10) + (Build.DEVICE.length() % 10) + (Build.MANUFACTURER.length() % 10) + (Build.MODEL.length() % 10) + (Build.PRODUCT.length() % 10);
         }
 
@@ -44,11 +48,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-
-
-
-
-
     }
 
     public String getDeviceID() {
@@ -60,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (sharedPref.contains(getString(R.string.UID))) {
             return sharedPref.getString(getString(R.string.UID), "NO ID");
-
         }
         else{
             return null;
