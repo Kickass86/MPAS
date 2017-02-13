@@ -2,4 +2,6 @@
     <string name="app_name">MPAS</string>
     <string name="ID">Unique ID</string>
     <string name="defaultValue">Asghar</string>
+    <string name="PREFERENCE_FILE">turbotec.mpas.PREFERENCE_FILE</string>
+    <string name="UID">UID</string>
 </resources>

@@ -4,13 +4,39 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.os.Build;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 import java.util.UUID;
 
+
 public class MainActivity extends AppCompatActivity {
+
+    public static String getUniquePsuedoID() {
+
+        String m_szDevIDShort;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            m_szDevIDShort = "35" + (Build.BOARD.length() % 10) + (Build.BRAND.length() % 10) + (Build.SUPPORTED_ABIS[0].length() % 10) + (Build.DEVICE.length() % 10) + (Build.MANUFACTURER.length() % 10) + (Build.MODEL.length() % 10) + (Build.PRODUCT.length() % 10);
+        }
+        else
+        {
+            m_szDevIDShort = "35" + (Build.BOARD.length() % 10) + (Build.BRAND.length() % 10) + (Build.CPU_ABI.length() % 10) + (Build.DEVICE.length() % 10) + (Build.MANUFACTURER.length() % 10) + (Build.MODEL.length() % 10) + (Build.PRODUCT.length() % 10);
+        }
+
+
+        String serial;
+        try {
+            serial = Build.class.getField("SERIAL").get(null).toString();
+
+            // Go ahead and return the serial for api => 9
+            return  new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
+        } catch (Exception exception) {
+            // String needs to be initialized
+            serial = "serial"; // some value
+        }
+        return new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,25 +51,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public String getDeviceID() {
+
+//        Context context = getActivity();
+        SharedPreferences sharedPref = getSharedPreferences(
+                getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
 
 
+        if (sharedPref.contains(getString(R.string.UID))) {
+            return sharedPref.getString(getString(R.string.UID), "NO ID");
 
-    public static String getUniquePsuedoID() {
-
-        String m_szDevIDShort = "35" + (Build.BOARD.length() % 10) + (Build.BRAND.length() % 10) + (Build.CPU_ABI.length() % 10) + (Build.DEVICE.length() % 10) + (Build.MANUFACTURER.length() % 10) + (Build.MODEL.length() % 10) + (Build.PRODUCT.length() % 10);
-        String serial = null;
-        try {
-            serial = Build.class.getField("SERIAL").get(null).toString();
-
-            // Go ahead and return the serial for api => 9
-            return  new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
-        } catch (Exception exception) {
-            // String needs to be initialized
-            serial = "serial"; // some value
         }
-        return new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
+        else{
+            return null;
+        }
     }
-
 
     public Boolean CheckInternetAvailability() {
 
@@ -60,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(getString(R.string.ID), newID);
-        editor.commit();
+        editor.apply();
 
     }
 
@@ -68,9 +90,8 @@ public class MainActivity extends AppCompatActivity {
     public String GetID() {
 
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
-        String ID = sharedPref.getString(getString(R.string.ID), getString(R.string.defaultValue));
+        return sharedPref.getString(getString(R.string.ID), getString(R.string.defaultValue));
 
-        return ID;
 
     }
 

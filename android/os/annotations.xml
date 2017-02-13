@@ -1,0 +1,5 @@
+<root>
+  <item name='android.os.Build CPU_ABI'>
+    <annotation name='java.lang.annotation.Deprecated' />
+  </item>
+</root>
