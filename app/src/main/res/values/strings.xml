@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MPAS</string>
+    <string name="ID">Unique ID</string>
+    <string name="defaultValue">Asghar</string>
+</resources>
