@@ -4,4 +4,8 @@
     <string name="defaultValue">Asghar</string>
     <string name="PREFERENCE_FILE">turbotec.mpas.PREFERENCE_FILE</string>
     <string name="UID">UID</string>
+    <string name="Username">Username</string>
+    <string name="Password">Password</string>
+    <string name="Register">Register</string>
+    <string name="Welcome">Welcome, You successfuly logged in</string>
 </resources>
