@@ -1,11 +1,13 @@
 <resources>
     <string name="app_name">MPAS</string>
     <string name="ID">Unique ID</string>
-    <string name="defaultValue">Asghar</string>
+    <string name="defaultValue">Not Saved!</string>
     <string name="PREFERENCE_FILE">turbotec.mpas.PREFERENCE_FILE</string>
     <string name="UID">UID</string>
     <string name="Username">Username</string>
     <string name="Password">Password</string>
     <string name="Register">Register</string>
+    <string name="Username_Password_File">LoginDetails</string>
+
     <string name="Welcome">Welcome, You successfuly logged in</string>
 </resources>

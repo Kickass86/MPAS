@@ -86,11 +86,36 @@ public class MainActivity extends AppCompatActivity {
 
     public String GetID() {
 
-        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
         return sharedPref.getString(getString(R.string.ID), getString(R.string.defaultValue));
 
 
     }
+
+    public void SaveLoginDetails(String email, String password) {
+        SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(getString(R.string.Username), email);
+        editor.putString(getString(R.string.Password), password);
+        editor.apply();
+    }
+
+
+    public String GetUsername() {
+
+        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
+        return sharedPref.getString(getString(R.string.Username), getString(R.string.defaultValue));
+
+    }
+
+
+    public String GetPassword() {
+
+        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
+        return sharedPref.getString(getString(R.string.Password), getString(R.string.defaultValue));
+
+    }
+
 
 
 }
