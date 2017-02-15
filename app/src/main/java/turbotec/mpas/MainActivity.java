@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -106,55 +107,90 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // save data in local shared preferences
 
-
-            String connectionUrl = "jdbc:sqlserver://127.0.0.1:1433;" + "databaseName = MIGT_Automation;encrypt = false;user = sa;password = left4de@d;";
-
-            // Declare the JDBC objects.
-            Connection con = null;
-            Statement stmt = null;
-            ResultSet rs = null;
-
+            Connection conn;
             try {
-                // Establish the connection.
-                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-                con = DriverManager.getConnection(connectionUrl);
-
-                // Create and execute an SQL statement that returns some data.
-
-                String selectQuery = "SELECT * FROM TbL_Users WHERE " + "Username = " + username + " AND " + " password = " + password + ";";
+                String driver = "net.sourceforge.jtds.jdbc.Driver";
 
 
-                stmt = con.createStatement();
-                rs = stmt.executeQuery(selectQuery);
+                //test = com.microsoft.sqlserver.jdbc.SQLServerDriver.class;
+                //String connString = "jdbc:jtds:sqlserver://localhost:1433/quehojaes;encrypt=false;user=Pc-PC;password=;instance=SQLEXPRESS;";
+                //  String connString = "Data Source=localhost:1433;Initial Catalog=quehojaes;Integrated Security=True";
+                String connString = "jdbc:jtds:sqlserver://192.168.1.131:1433/MIGT_Automation;";
 
-                if (rs != null)
-                    return rs.getString("firstname");
 
-            }
+                String name = "sa";
+                String pass = "left4de@d";
 
-            // Handle any errors that may have occurred.
-            catch (Exception e) {
+                try {
+                    Class.forName(driver).newInstance();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                conn = DriverManager.getConnection(connString);
+                Log.w("Connection", "open");
+                Statement stmt = conn.createStatement();
+                ResultSet reset = stmt.executeQuery("SELECT * FROM TbL_Users WHERE " + "Username = " + username + " AND " + " password = " + password + ";");
+
+                return reset.getString("firstname");
+            } catch (IllegalAccessException e) {
                 e.printStackTrace();
-            } finally {
-                if (rs != null) try {
-                    rs.close();
-                } catch (Exception e) {
-                    e.getStackTrace();
-                }
-                if (stmt != null) try {
-                    stmt.close();
-                } catch (Exception e) {
-                    e.getStackTrace();
-                }
-                if (con != null) try {
-                    con.close();
-                } catch (Exception e) {
-                    e.getStackTrace();
-                }
+            } catch (Exception e) {
+                e.getStackTrace();
             }
-        }
 
+
+        }
         return null;
+
+
+//            String connectionUrl = "jdbc:sqlserver://192.168.1.131:1433;" + "databaseName = MIGT_Automation;encrypt = false;user = sa;password = left4de@d;";
+//
+//            // Declare the JDBC objects.
+//            Connection con = null;
+//            Statement stmt = null;
+//            ResultSet rs = null;
+//
+//            try {
+//                // Establish the connection.
+//                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+//                con = DriverManager.getConnection(connectionUrl);
+//
+//                // Create and execute an SQL statement that returns some data.
+//
+//                String selectQuery = "SELECT * FROM TbL_Users WHERE " + "Username = " + username + " AND " + " password = " + password + ";";
+//
+//
+//                stmt = con.createStatement();
+//                rs = stmt.executeQuery(selectQuery);
+//
+//                if (rs != null)
+//                    return rs.getString("firstname");
+//
+//            }
+//
+//            // Handle any errors that may have occurred.
+//            catch (Exception e) {
+//                e.printStackTrace();
+//            } finally {
+//                if (rs != null) try {
+//                    rs.close();
+//                } catch (Exception e) {
+//                    e.getStackTrace();
+//                }
+//                if (stmt != null) try {
+//                    stmt.close();
+//                } catch (Exception e) {
+//                    e.getStackTrace();
+//                }
+//                if (con != null) try {
+//                    con.close();
+//                } catch (Exception e) {
+//                    e.getStackTrace();
+//                }
+//            }
+//        }
+
+
 
     }
 
