@@ -7,10 +7,11 @@
     <string name="UID">UID</string>
     <string name="Username">Username</string>
     <string name="Password">Password</string>
+    <string name="Wait">Please wait</string>
     <string name="Register">Register</string>
     <string name="error_invalid_password">Error! Password is empty.</string>
     <string name="error_field_required">Error! Username is empty.</string>
 
 
-    <string name="Welcome">Welcome, You successfuly logged in</string>
+    <string name="Welcome">Welcome, You successfully logged in</string>
 </resources>

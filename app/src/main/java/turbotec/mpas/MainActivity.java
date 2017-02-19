@@ -1,6 +1,7 @@
 package turbotec.mpas;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -98,6 +100,28 @@ public class MainActivity extends AppCompatActivity {
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
+            if (result) {
+                setContentView(R.layout.activity_main_logged_in);
+            } else {
+                //Error On LogIn
+                Log.w("ERROR", "Wrong Information");
+                Toast.makeText(this.getApplicationContext(),
+                        "Wrong Info", Toast.LENGTH_LONG).show();
+                final Intent intent = getIntent();
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
+                            MainActivity.this.finish();
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                thread.start();
+            }
 
         }
 
@@ -150,59 +174,27 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 //Error On LogIn
                 Log.w("ERROR", "Wrong Information");
+                Toast.makeText(this.getApplicationContext(),
+                        "Wrong Info", Toast.LENGTH_LONG).show();
+                final Intent intent = getIntent();
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
+                            MainActivity.this.finish();
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                thread.start();
             }
 
 
         }
         return null;
-
-
-//            String connectionUrl = "jdbc:sqlserver://192.168.1.131:1433;" + "databaseName = MIGT_Automation;encrypt = false;user = sa;password = left4de@d;";
-//
-//            // Declare the JDBC objects.
-//            Connection con = null;
-//            Statement stmt = null;
-//            ResultSet rs = null;
-//
-//            try {
-//                // Establish the connection.
-//                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-//                con = DriverManager.getConnection(connectionUrl);
-//
-//                // Create and execute an SQL statement that returns some data.
-//
-//                String selectQuery = "SELECT * FROM TbL_Users WHERE " + "Username = " + username + " AND " + " password = " + password + ";";
-//
-//
-//                stmt = con.createStatement();
-//                rs = stmt.executeQuery(selectQuery);
-//
-//                if (rs != null)
-//                    return rs.getString("firstname");
-//
-//            }
-//
-//            // Handle any errors that may have occurred.
-//            catch (Exception e) {
-//                e.printStackTrace();
-//            } finally {
-//                if (rs != null) try {
-//                    rs.close();
-//                } catch (Exception e) {
-//                    e.getStackTrace();
-//                }
-//                if (stmt != null) try {
-//                    stmt.close();
-//                } catch (Exception e) {
-//                    e.getStackTrace();
-//                }
-//                if (con != null) try {
-//                    con.close();
-//                } catch (Exception e) {
-//                    e.getStackTrace();
-//                }
-//            }
-//        }
 
 
 
@@ -279,9 +271,7 @@ public class MainActivity extends AppCompatActivity {
                 String name = "sa";
                 String pass = "left4de@d";
 
-                //test = com.microsoft.sqlserver.jdbc.SQLServerDriver.class;
-                //String connString = "jdbc:jtds:sqlserver://localhost:1433/quehojaes;encrypt=false;user=Pc-PC;password=;instance=SQLEXPRESS;";
-                //  String connString = "Data Source=localhost:1433;Initial Catalog=quehojaes;Integrated Security=True";
+
                 String connString = "jdbc:jtds:sqlserver://192.168.1.131:1433/MIGT_Automation;user=" + name + ";password=" + pass + ";";
 
 
