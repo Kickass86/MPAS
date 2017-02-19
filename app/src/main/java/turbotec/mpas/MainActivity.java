@@ -27,6 +27,9 @@ public class MainActivity extends AppCompatActivity {
     private EditText UsernameView;
     private EditText PasswordView;
     private Button RegisterButton;
+    private String UserName;
+    private String PassWord;
+    private String MyID;
     private String Name;
 
 
@@ -61,6 +64,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        UserName = GetUsername();
+        PassWord = GetPassword();
+        MyID = GetID();
+
 
         UsernameView = (EditText) findViewById(R.id.editText2);
         PasswordView = (EditText) findViewById(R.id.editText);
@@ -74,17 +81,31 @@ public class MainActivity extends AppCompatActivity {
 
                 String Username = UsernameView.getText().toString();
                 String Password = PasswordView.getText().toString();
+                String DeviceID = getUniquePsuedoID();
 
-                Name = attemptLogin(Username, Password);
+                Name = attemptLogin(Username, Password, DeviceID);
 //                Log.i("Successful Login ", "Welcome " + Name);
             }
         });
+
+        if ((!UserName.equals(getString(R.string.defaultValue))) && ((!PassWord.equals(getString(R.string.defaultValue)))) && (!MyID.equals(getString(R.string.defaultValue)))) {
+            setContentView(R.layout.waiting_layout);
+            boolean result = false;
+            String[] Userdetails = {UserName, PassWord, MyID};
+            NetworkTask task = new NetworkTask();
+            try {
+                result = task.execute(Userdetails).get();
+            } catch (ExecutionException | InterruptedException ei) {
+                ei.printStackTrace();
+            }
+
+        }
 
 
     }
 
 
-    public String attemptLogin(String username, String password) {
+    public String attemptLogin(String username, String password, String DeviceID) {
 
         boolean result = false;
 
@@ -114,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             // save data in local shared preferences
-            String[] Userdetails = {username, password};
+            String[] Userdetails = {username, password, DeviceID};
             NetworkTask task = new NetworkTask();
             try {
                 result = task.execute(Userdetails).get();
@@ -122,12 +143,13 @@ public class MainActivity extends AppCompatActivity {
                 ei.printStackTrace();
             }
             if (result) {
-                String ID = getUniquePsuedoID();
-                SaveID(ID);
+
+                SaveID(DeviceID);
                 SaveLoginDetails(username, password);
                 setContentView(R.layout.activity_main_logged_in);
             } else {
                 //Error On LogIn
+                Log.w("ERROR", "Wrong Information");
             }
 
 
@@ -186,18 +208,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public String getDeviceID() {
-
-//        Context context = getActivity();
-        SharedPreferences sharedPref = getSharedPreferences(
-                getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
-
-
-        if (sharedPref.contains(getString(R.string.UID))) {
-            return sharedPref.getString(getString(R.string.UID), "NO ID");
-        }
-        return null;
-    }
 
     public Boolean CheckInternetAvailability() {
 
@@ -259,6 +269,7 @@ public class MainActivity extends AppCompatActivity {
 
             Object username = userdetails[0];
             Object password = userdetails[1];
+            Object DeviceID = userdetails[2];
 
             Connection conn;
             try {
@@ -289,18 +300,29 @@ public class MainActivity extends AppCompatActivity {
 
                 Boolean b = reset.next();
                 if (b) {
-                    int UpdateDeviceID = stmt.executeUpdate("Use MIGT_Automation\n" +
-                            "   update TbL_Users\n" +
-                            "   SET DeviceID = '" + getUniquePsuedoID() + "'\n" +
-                            "   WHERE " + "Username = '" +
-                            username + "' AND " + " password = '" + password + "';");
-                    if (UpdateDeviceID != 0) {
-                        Log.i("SQL Database", "DeviceID Updated Successfuly");
+                    reset = stmt.executeQuery("Use MIGT_Automation\n" +
+                            " SELECT * FROM TbL_Users WHERE " + "Username = '" +
+                            username + "' AND " + " password = '" + password + "' AND DeviceID = '" + DeviceID + "';");
+
+                    if (reset.next()) {
+                        int UpdateDeviceID = stmt.executeUpdate("Use MIGT_Automation\n" +
+                                "   update TbL_Users\n" +
+                                "   SET DeviceID = '" + getUniquePsuedoID() + "'\n" +
+                                "   WHERE " + "Username = '" +
+                                username + "' AND " + " password = '" + password + "';");
+                        if (UpdateDeviceID != 0) {
+                            Log.i("SQL Database", "DeviceID Updated Successfully");
+                            return true;
+                        }
+                    } else {
+                        return false;
                     }
 
+                } else {
+                    return false;
                 }
+                return false;
 
-                return b;
 //                return reset.getString(0);
 //                return (reset.getString("password").equals(password)) ? true: false;
 //                return reset.getString("password");
