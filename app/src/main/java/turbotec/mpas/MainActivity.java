@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 String Password = PasswordView.getText().toString();
 
                 Name = attemptLogin(Username, Password);
-                Log.i("Successful Login ", "Welcome " + Name);
+//                Log.i("Successful Login ", "Welcome " + Name);
             }
         });
 
@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 ei.printStackTrace();
             }
             if (result) {
-                String ID = getDeviceID();
+                String ID = getUniquePsuedoID();
                 SaveID(ID);
                 SaveLoginDetails(username, password);
                 setContentView(R.layout.activity_main_logged_in);
@@ -282,10 +282,25 @@ public class MainActivity extends AppCompatActivity {
                 conn = DriverManager.getConnection(connString);
                 Log.w("Connection", "open");
                 Statement stmt = conn.createStatement();
-                ResultSet reset = stmt.executeQuery("SELECT * FROM TbL_Users WHERE " + "Username = '" + username + "' AND " + " password = '" + password + "';");
+                ResultSet reset = stmt.executeQuery("Use MIGT_Automation\n" +
+                        " SELECT * FROM TbL_Users WHERE " + "Username = '" +
+                        username + "' AND " + " password = '" + password + "';");
 //                ResultSet reset = stmt.executeQuery("SELECT * FROM TbL_Users WHERE " + "Username = '" + username +"';");
 
-                return reset.next();
+                Boolean b = reset.next();
+                if (b) {
+                    int UpdateDeviceID = stmt.executeUpdate("Use MIGT_Automation\n" +
+                            "   update TbL_Users\n" +
+                            "   SET DeviceID = '" + getUniquePsuedoID() + "'\n" +
+                            "   WHERE " + "Username = '" +
+                            username + "' AND " + " password = '" + password + "';");
+                    if (UpdateDeviceID != 0) {
+                        Log.i("SQL Database", "DeviceID Updated Successfuly");
+                    }
+
+                }
+
+                return b;
 //                return reset.getString(0);
 //                return (reset.getString("password").equals(password)) ? true: false;
 //                return reset.getString("password");
