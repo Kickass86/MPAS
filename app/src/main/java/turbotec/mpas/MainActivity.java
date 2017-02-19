@@ -19,6 +19,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -85,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
     public String attemptLogin(String username, String password) {
 
+        boolean result = false;
 
         UsernameView.setError(null);
         PasswordView.setError(null);
@@ -113,8 +115,20 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // save data in local shared preferences
             String[] Userdetails = {username, password};
-            new NetworkTask().execute(Userdetails);
-
+            NetworkTask task = new NetworkTask();
+            try {
+                result = task.execute(Userdetails).get();
+            } catch (ExecutionException | InterruptedException ei) {
+                ei.printStackTrace();
+            }
+            if (result) {
+                String ID = getDeviceID();
+                SaveID(ID);
+                SaveLoginDetails(username, password);
+                setContentView(R.layout.activity_main_logged_in);
+            } else {
+                //Error On LogIn
+            }
 
 
         }
@@ -285,8 +299,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        protected void onPostExecute() {
+        protected void onPostExecute(Boolean IsAuthorized) {
             // dismiss progress dialog and update ui
+
         }
     }
 
