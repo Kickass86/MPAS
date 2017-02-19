@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText UsernameView;
     private EditText PasswordView;
     private Button RegisterButton;
+    private String Name;
 
 
     @SuppressWarnings("deprecation")
@@ -59,17 +61,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        UsernameView = (EditText) findViewById(R.id.editText);
-        PasswordView = (EditText) findViewById(R.id.editText2);
+        UsernameView = (EditText) findViewById(R.id.editText2);
+        PasswordView = (EditText) findViewById(R.id.editText);
         RegisterButton = (Button) findViewById(R.id.button);
 
-        final String Username = UsernameView.getText().toString();
-        final String Password = PasswordView.getText().toString();
+
 
         RegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin(Username, Password);
+
+                String Username = UsernameView.getText().toString();
+                String Password = PasswordView.getText().toString();
+
+                Name = attemptLogin(Username, Password);
+                Log.i("Successful Login ", "Welcome " + Name);
             }
         });
 
@@ -87,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
         View focusView = null;
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password)) {
+        if (TextUtils.isEmpty(password)) {
             PasswordView.setError(getString(R.string.error_invalid_password));
             focusView = PasswordView;
             cancel = true;
@@ -106,37 +112,9 @@ public class MainActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             // save data in local shared preferences
+            String[] Userdetails = {username, password};
+            new NetworkTask().execute(Userdetails);
 
-            Connection conn;
-            try {
-                String driver = "net.sourceforge.jtds.jdbc.Driver";
-
-
-                //test = com.microsoft.sqlserver.jdbc.SQLServerDriver.class;
-                //String connString = "jdbc:jtds:sqlserver://localhost:1433/quehojaes;encrypt=false;user=Pc-PC;password=;instance=SQLEXPRESS;";
-                //  String connString = "Data Source=localhost:1433;Initial Catalog=quehojaes;Integrated Security=True";
-                String connString = "jdbc:jtds:sqlserver://192.168.1.131:1433/MIGT_Automation;";
-
-
-                String name = "sa";
-                String pass = "left4de@d";
-
-                try {
-                    Class.forName(driver).newInstance();
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-                conn = DriverManager.getConnection(connString);
-                Log.w("Connection", "open");
-                Statement stmt = conn.createStatement();
-                ResultSet reset = stmt.executeQuery("SELECT * FROM TbL_Users WHERE " + "Username = " + username + " AND " + " password = " + password + ";");
-
-                return reset.getString("firstname");
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.getStackTrace();
-            }
 
 
         }
@@ -216,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
     public void SaveID(String newID) {
 
         SharedPreferences sharedPref = getSharedPreferences(getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
@@ -225,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
 
     }
-
 
     public String GetID() {
 
@@ -243,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-
     public String GetUsername() {
 
         SharedPreferences sharedPref = getSharedPreferences(getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
@@ -251,12 +226,68 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
     public String GetPassword() {
 
         SharedPreferences sharedPref = getSharedPreferences(getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
         return sharedPref.getString(getString(R.string.Password), getString(R.string.defaultValue));
 
+    }
+
+    private class NetworkTask extends AsyncTask<Object, Object, Boolean> {
+
+
+        protected void onPreExecute() {
+            //display progress dialog.
+
+        }
+
+        protected Boolean doInBackground(Object... userdetails) {
+
+            Object username = userdetails[0];
+            Object password = userdetails[1];
+
+            Connection conn;
+            try {
+                String driver = "net.sourceforge.jtds.jdbc.Driver";
+
+
+                String name = "sa";
+                String pass = "left4de@d";
+
+                //test = com.microsoft.sqlserver.jdbc.SQLServerDriver.class;
+                //String connString = "jdbc:jtds:sqlserver://localhost:1433/quehojaes;encrypt=false;user=Pc-PC;password=;instance=SQLEXPRESS;";
+                //  String connString = "Data Source=localhost:1433;Initial Catalog=quehojaes;Integrated Security=True";
+                String connString = "jdbc:jtds:sqlserver://192.168.1.131:1433/MIGT_Automation;user=" + name + ";password=" + pass + ";";
+
+
+                try {
+                    Class.forName(driver).newInstance();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                conn = DriverManager.getConnection(connString);
+                Log.w("Connection", "open");
+                Statement stmt = conn.createStatement();
+                ResultSet reset = stmt.executeQuery("SELECT * FROM TbL_Users WHERE " + "Username = '" + username + "' AND " + " password = '" + password + "';");
+//                ResultSet reset = stmt.executeQuery("SELECT * FROM TbL_Users WHERE " + "Username = '" + username +"';");
+
+                return reset.next();
+//                return reset.getString(0);
+//                return (reset.getString("password").equals(password)) ? true: false;
+//                return reset.getString("password");
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                return false;
+            } catch (Exception e) {
+                e.getStackTrace();
+                return false;
+            }
+        }
+
+
+        protected void onPostExecute() {
+            // dismiss progress dialog and update ui
+        }
     }
 
 
