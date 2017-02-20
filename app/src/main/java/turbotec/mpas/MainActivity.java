@@ -1,5 +1,7 @@
 package turbotec.mpas;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -8,6 +10,7 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,6 +28,8 @@ import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    private PendingIntent pendingIntent;
 
     private EditText UsernameView;
     private EditText PasswordView;
@@ -101,7 +106,21 @@ public class MainActivity extends AppCompatActivity {
                 ei.printStackTrace();
             }
             if (result) {
+                //set Repeating Alarm
                 setContentView(R.layout.activity_main_logged_in);
+
+                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+
+                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//                long interval = INTERVAL_FIFTEEN_MINUTES;
+                int interval = 60000;
+
+//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+
+
             } else {
                 //Error On LogIn
                 Log.w("ERROR", "Wrong Information");
@@ -171,6 +190,20 @@ public class MainActivity extends AppCompatActivity {
                 SaveID(DeviceID);
                 SaveLoginDetails(username, password);
                 setContentView(R.layout.activity_main_logged_in);
+
+                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+
+                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//                long interval = INTERVAL_FIFTEEN_MINUTES;
+                int interval = 60000;
+
+//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+
+
+
             } else {
                 //Error On LogIn
                 Log.w("ERROR", "Wrong Information");
