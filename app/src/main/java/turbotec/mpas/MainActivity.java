@@ -4,7 +4,9 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -15,22 +17,32 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
 
+    public static DatabaseHandler db;
+    public static SQLiteDatabase database;
+    public static List<MessageObject> MESSAGES;
+    public SharedPreferenceHandler sp;
+    public SharedPreferenceHandler share;
     private PendingIntent pendingIntent;
-
+    private ListView lv;
     private EditText UsernameView;
     private EditText PasswordView;
     private Button RegisterButton;
@@ -71,9 +83,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        UserName = GetUsername();
-        PassWord = GetPassword();
-        MyID = GetID();
+        share = SharedPreferenceHandler.getInstance(this);
+        SQLiteOpenHelper t = DatabaseHandler.getInstance(this);
+
+        database = t.getReadableDatabase();
+
+//        AlarmReceiver AR = new AlarmReceiver();
+//        registerReceiver(AR,);
+
+
+        UserName = share.GetUsername();
+        PassWord = share.GetPassword();
+        MyID = share.GetDeviceID();
 
 
         UsernameView = (EditText) findViewById(R.id.editText2);
@@ -99,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
             setContentView(R.layout.waiting_layout);
             boolean result = false;
             String[] Userdetails = {UserName, PassWord, MyID};
-            NetworkTask task = new NetworkTask();
+            NetworkAsyncTask task = new NetworkAsyncTask(this);
             try {
                 result = task.execute(Userdetails).get();
             } catch (ExecutionException | InterruptedException ei) {
@@ -119,7 +140,9 @@ public class MainActivity extends AppCompatActivity {
 //                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
                 manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
                 Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+                Log.i("Alarm", "Set");
 
+//                ShowMessages(GetMessagesfromDB());
 
             } else {
                 //Error On LogIn
@@ -178,17 +201,17 @@ public class MainActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             // save data in local shared preferences
-            String[] Userdetails = {username, password, DeviceID};
-            NetworkTask task = new NetworkTask();
+            String[] Userdata = {username, password, DeviceID};
+            NetworkAsyncTask task = new NetworkAsyncTask(this);
             try {
-                result = task.execute(Userdetails).get();
+                result = task.execute(Userdata).get();
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
             if (result) {
 
-                SaveID(DeviceID);
-                SaveLoginDetails(username, password);
+                share.SaveDeviceID(DeviceID);
+                share.SaveLoginDetails(username, password);
                 setContentView(R.layout.activity_main_logged_in);
 
                 Intent alarmIntent = new Intent(this, AlarmReceiver.class);
@@ -201,7 +224,9 @@ public class MainActivity extends AppCompatActivity {
 //                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
                 manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
                 Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+                Log.i("Alarm", "Set");
 
+//                ShowMessages(GetMessagesfromDB());
 
 
             } else {
@@ -243,50 +268,28 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void SaveID(String newID) {
 
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(getString(R.string.ID), newID);
-        editor.apply();
-
-    }
-
-    public String GetID() {
-
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
-        return sharedPref.getString(getString(R.string.ID), getString(R.string.defaultValue));
+    //Network AsyncTask
 
 
-    }
+    public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
 
-    public void SaveLoginDetails(String email, String password) {
-        SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(getString(R.string.Username), email);
-        editor.putString(getString(R.string.Password), password);
-        editor.apply();
-    }
+        public DatabaseHandler db;
+        public List<MessageObject> MESSAGES;
+        public SQLiteDatabase database;
+        private WeakReference<MainActivity> MyActivity;
+        private ListView lv;
+        private Boolean FLag = false;
+        private MessageObject MObj;
 
-    public String GetUsername() {
+        public NetworkAsyncTask(Context context) {
+//        this.MyActivity = new WeakReference<MainActivity>(activity);
 
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
-        return sharedPref.getString(getString(R.string.Username), getString(R.string.defaultValue));
-
-    }
-
-    public String GetPassword() {
-
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
-        return sharedPref.getString(getString(R.string.Password), getString(R.string.defaultValue));
-
-    }
-
-    private class NetworkTask extends AsyncTask<Object, Object, Boolean> {
-
+        }
 
         protected void onPreExecute() {
             //display progress dialog.
+
 
         }
 
@@ -315,56 +318,165 @@ public class MainActivity extends AppCompatActivity {
                 }
                 conn = DriverManager.getConnection(connString);
                 Log.w("Connection", "open");
-                Statement stmt = conn.createStatement();
-                ResultSet reset = stmt.executeQuery("Use MIGT_Automation\n" +
+                Statement stmt1 = conn.createStatement();
+                ResultSet reset1 = stmt1.executeQuery("Use MIGT_Automation\n" +
                         " SELECT * FROM TbL_Users WHERE " + "Username = '" +
-                        username + "' AND " + " password = '" + password + "';");
+                        username + "' AND  password = '" + password + "';");
 //                ResultSet reset = stmt.executeQuery("SELECT * FROM TbL_Users WHERE " + "Username = '" + username +"';");
 
-                Boolean b = reset.next();
-                if (b) {
-                    reset = stmt.executeQuery("Use MIGT_Automation\n" +
-                            " SELECT * FROM TbL_Users WHERE " + "Username = '" +
-                            username + "' AND " + " password = '" + password + "' AND DeviceID = '" + DeviceID + "';");
+                Statement stmt4 = conn.createStatement();
 
-                    if (reset.next()) {
-                        int UpdateDeviceID = stmt.executeUpdate("Use MIGT_Automation\n" +
-                                "   update TbL_Users\n" +
-                                "   SET DeviceID = '" + getUniquePsuedoID() + "'\n" +
-                                "   WHERE " + "Username = '" +
-                                username + "' AND " + " password = '" + password + "';");
-                        if (UpdateDeviceID != 0) {
-                            Log.i("SQL Database", "DeviceID Updated Successfully");
-                            return true;
+                Boolean b = reset1.next();
+                if (b) {
+                    Statement stmt2 = conn.createStatement();
+                    ResultSet reset2 = stmt2.executeQuery("Use MIGT_Automation\n" +
+                            "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[User ID] = TbL_Users.id \n" +
+                            "Where TbL_Users.id = '" + reset1.getString("id") + "' AND TbL_Users.DeviceID = '" + DeviceID + "';");
+
+                    if (reset2.next()) {
+
+                        Statement stmt3 = conn.createStatement();
+                        ResultSet reset3 = stmt3.executeQuery("Use MIGT_Automation\n" +
+                                "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[User ID] = TbL_Users.id \n" +
+                                "Where TbL_Users.id = '" + reset1.getString("id") + "' AND Messages.Delivered = 0 AND TbL_Users.DeviceID = '" + DeviceID + "';");
+                        if (reset3.next()) {
+                            int UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
+                                    "   update Messages\n" +
+                                    "   SET Delivered = 1\n" +
+                                    "   WHERE " + "[Message ID] = '" + reset2.getString("Message ID") + "' AND Delivered = 0;");
+                            //
+                            MainActivity activity = this.MyActivity.get();
+                            MObj = new MessageObject(reset2.getString("Message ID"), reset2.getString("User ID"),
+                                    reset2.getString("Message Title"), reset2.getString("Message Body"), reset2.getDate("Insert Date").toString(), reset2.getInt("Delivered"));
+                            db.addMessage(MObj);
+                            Log.i("User valid", "New message added");
+                            while (reset2.next()) {
+                                UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
+                                        "   update Messages\n" +
+                                        "   SET Delivered = 1\n" +
+                                        "   WHERE " + "[Message ID] = '" + reset2.getString("Message ID") + "' AND Delivered = 0;");
+
+                                MObj = new MessageObject(reset2.getString("Message ID"), reset2.getString("User ID"),
+                                        reset2.getString("Message Title"), reset2.getString("Message Body"), reset2.getDate("Insert Date").toString(), reset2.getInt("Delivered"));
+                                db.addMessage(MObj);
+                            }
+                            FLag = true;
+                        } else {
+                            //No new Message
+                            Log.i("User valid", "No new message");
+                            FLag = true;
                         }
                     } else {
-                        return false;
+                        if (reset1.getString("DeviceID") == null) {
+                            //First Time Launch
+                            int UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
+                                    "   update TbL_Users\n" +
+                                    "   SET DeviceID = '" + DeviceID + "'\n" +
+                                    "   WHERE " + "Username = '" +
+                                    username + "' AND " + " password = '" + password + "';");
+                            if (UpdateDeviceID != 0) {
+                                Log.i("SQL Database", "DeviceID Updated Successfully");
+                                FLag = true;
+                            }
+                        }
                     }
 
                 } else {
-                    return false;
+                    Log.i("Return false", "User invalid");
+//                return false;
+
                 }
-                return false;
+
+//            return false;
 
 //                return reset.getString(0);
 //                return (reset.getString("password").equals(password)) ? true: false;
 //                return reset.getString("password");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
-                return false;
+                Log.i("Return false", "User invalid");
+//            return false;
             } catch (Exception e) {
                 e.getStackTrace();
-                return false;
+                Log.i("Return false", "User invalid");
+//            return false;
             }
+
+            return FLag;
         }
 
 
-        protected void onPostExecute(Boolean IsAuthorized) {
+        protected void onPostExecute() {
             // dismiss progress dialog and update ui
+            Log.d("SQLite", "Begin to Show");
+            ShowMessages(GetMessagesfromDB());
 
         }
-    }
 
+
+        public List<MessageObject> GetMessagesfromDB() {
+
+
+//        database =  db.getReadableDatabase();
+            Cursor cursor = database.rawQuery("SELECT * " +
+                    "FROM Messages ;", null);
+
+            // looping through all rows and adding to list
+            try {
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        do {
+                            MessageObject MObj = new MessageObject();
+                            MObj.setMessageID(cursor.getString(1));
+                            MObj.setUserID(cursor.getString(2));
+                            MObj.setMessageTitle(cursor.getString(3));
+                            MObj.setMessageBody(cursor.getString(4));
+                            MObj.setInsertDate(cursor.getString(5));
+                            MObj.setDelivered(cursor.getInt(6));
+
+                            MESSAGES.add(MObj);
+                        } while (cursor.moveToNext());
+                    }
+                }
+            } catch (Exception e) {
+                e.getStackTrace();
+            }
+            return MESSAGES;
+
+        }
+
+        public void ShowMessages(List<MessageObject> Messages) {
+
+            setContentView(R.layout.messages_layout);
+            lv = (ListView) findViewById(R.id.list1);
+
+
+            List<String> Mlist = new ArrayList<String>(); //Messages List
+            List<String> Tlist = new ArrayList<String>(); //Title List
+            List<String> Dlist = new ArrayList<String>(); //Date List
+
+            if (Messages != null) {
+                Mlist.add(Messages.get(0).getMessageBody());
+                Tlist.add(Messages.get(0).getMessageTitle());
+                Dlist.add(Messages.get(0).getInsertDate());
+            }
+            // This is the array adapter, it takes the context of the activity as a
+            // first parameter, the type of list view as a second parameter and your
+            // array as a third parameter.
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                    MainActivity.this,
+                    android.R.layout.simple_list_item_1,
+                    Tlist);
+
+            lv.setAdapter(arrayAdapter);
+
+        }
+
+
+
+
+
+    }
 
 
 }
