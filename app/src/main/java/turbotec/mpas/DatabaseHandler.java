@@ -98,7 +98,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 if (cursor.moveToFirst()) {
                     do {
                         MessageObject messageObject = new MessageObject();
-                        messageObject.setMessageID(cursor.getString(0));
+                        messageObject.setMessageID(cursor.getInt(0));
                         messageObject.setUserID(cursor.getString(1));
                         messageObject.setMessageTitle(cursor.getString(2));
                         messageObject.setMessageBody(cursor.getString(3));
@@ -143,7 +143,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 if (cursor.moveToFirst()) {
                     do {
                         MessageObject messageObject = new MessageObject();
-                        messageObject.setMessageID(cursor.getString(0));
+                        messageObject.setMessageID(cursor.getInt(0));
                         messageObject.setUserID(cursor.getString(1));
                         messageObject.setMessageTitle(cursor.getString(2));
                         messageObject.setMessageBody(cursor.getString(3));

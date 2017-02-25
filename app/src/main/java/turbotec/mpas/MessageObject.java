@@ -4,7 +4,7 @@ package turbotec.mpas;
 public class MessageObject {
 
 
-    private String MessageID;
+    private int MessageID;
     private String UserID;
     private String MessageTitle;
 
@@ -13,7 +13,7 @@ public class MessageObject {
     private String InsertDate;
     private int Delivered;
 
-    public MessageObject(String MessageID, String UserID, String MessageTitle, String MessageBody, String InsertDate, int Delivered) {
+    public MessageObject(int MessageID, String UserID, String MessageTitle, String MessageBody, String InsertDate, int Delivered) {
         this.MessageID = MessageID;
         this.UserID = UserID;
         this.MessageTitle = MessageTitle;
@@ -51,11 +51,11 @@ public class MessageObject {
         MessageBody = messageBody;
     }
 
-    public String getMessageID() {
+    public int getMessageID() {
         return MessageID;
     }
 
-    public void setMessageID(String messageID) {
+    public void setMessageID(int messageID) {
         MessageID = messageID;
     }
 

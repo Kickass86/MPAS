@@ -97,18 +97,18 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                                 "   WHERE " + "[Message ID] = '" + reset2.getString("Message ID") + "' AND Delivered = 0;");
                         //
 //                            MainActivity activity = this.MyActivity.get();
-                        MObj = new MessageObject(reset2.getString("Message ID"), reset2.getString("User ID"),
-                                reset2.getString("Message Title"), reset2.getString("Message Body"), reset2.getDate("Insert Date").toString(), reset2.getInt("Delivered"));
+                        MObj = new MessageObject(reset3.getInt("Message ID"), reset3.getString("User ID"),
+                                reset3.getString("Message Title"), reset3.getString("Message Body"), reset3.getDate("Insert Date").toString(), reset3.getInt("Delivered"));
                         db.addMessage(MObj);
                         Log.i("User valid", "New message added");
-                        while (reset2.next()) {
+                        while (reset3.next()) {
                             UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
                                     "   update Messages\n" +
                                     "   SET Delivered = 1\n" +
-                                    "   WHERE " + "[Message ID] = '" + reset2.getString("Message ID") + "' AND Delivered = 0;");
+                                    "   WHERE " + "[Message ID] = '" + reset3.getString("Message ID") + "' AND Delivered = 0;");
 
-                            MObj = new MessageObject(reset2.getString("Message ID"), reset2.getString("User ID"),
-                                    reset2.getString("Message Title"), reset2.getString("Message Body"), reset2.getDate("Insert Date").toString(), reset2.getInt("Delivered"));
+                            MObj = new MessageObject(reset3.getInt("Message ID"), reset3.getString("User ID"),
+                                    reset3.getString("Message Title"), reset3.getString("Message Body"), reset3.getDate("Insert Date").toString(), reset3.getInt("Delivered"));
                             db.addMessage(MObj);
                         }
                         FLag = true;
@@ -180,7 +180,7 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                 if (cursor.moveToFirst()) {
                     do {
                         MObj = new MessageObject();
-                        MObj.setMessageID(cursor.getString(0));
+                        MObj.setMessageID(cursor.getInt(0));
                         MObj.setUserID(cursor.getString(1));
                         MObj.setMessageTitle(cursor.getString(2));
                         MObj.setMessageBody(cursor.getString(3));

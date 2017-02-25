@@ -102,11 +102,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
+
         MESSAGES = new ArrayList<MessageObject>();
         share = SharedPreferenceHandler.getInstance(this);
         db = DatabaseHandler.getInstance(this);
 
+        registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
 //        database = t.getReadableDatabase();
 
 //        AlarmReceiver AR = new AlarmReceiver();
@@ -293,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
                 if (cursor.moveToFirst()) {
                     do {
                         MObj = new MessageObject();
-                        MObj.setMessageID(cursor.getString(0));
+                        MObj.setMessageID(cursor.getInt(0));
                         MObj.setUserID(cursor.getString(1));
                         MObj.setMessageTitle(cursor.getString(2));
                         MObj.setMessageBody(cursor.getString(3));
@@ -321,10 +322,10 @@ public class MainActivity extends AppCompatActivity {
         List<String> Tlist = new ArrayList<String>(); //Title List
         List<String> Dlist = new ArrayList<String>(); //Date List
 
-        if (Messages != null) {
-            Mlist.add(Messages.get(0).getMessageBody());
-            Tlist.add(Messages.get(0).getMessageTitle());
-            Dlist.add(Messages.get(0).getInsertDate());
+        for (int i = 0; i < Messages.size(); i++) {
+            Mlist.add(Messages.get(i).getMessageBody());
+            Tlist.add(Messages.get(i).getMessageTitle());
+            Dlist.add(Messages.get(i).getInsertDate());
         }
         // This is the array adapter, it takes the context of the activity as a
         // first parameter, the type of list view as a second parameter and your
