@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.lang.ref.WeakReference;
@@ -12,27 +13,34 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
 
-    public static DatabaseHandler db;
-    public static List<MessageObject> MESSAGES;
-    public static SQLiteDatabase database;
+    public DatabaseHandler db;
+    public List<MessageObject> MESSAGES;
+    public MessageObject MObj;
+    Context mContetx;
+    //        public SQLiteDatabase database;
     private WeakReference<MainActivity> MyActivity;
     private ListView lv;
     private Boolean FLag = false;
-    private MessageObject MObj;
+//        private MessageObject MObj;
 
-    public NetworkAsyncTask(Context context) {
-//        this.MyActivity = new WeakReference<MainActivity>(activity);
-
+    public NetworkAsyncTask(Context context, MainActivity activity) {
+        this.MyActivity = new WeakReference<MainActivity>(activity);
+        mContetx = context;
     }
 
     protected void onPreExecute() {
         //display progress dialog.
-
+        db = MainActivity.db;
+//            MObj = new MessageObject();
+        MESSAGES = new ArrayList<MessageObject>();
+//             db = datab.getInstance(MainActivity.this);
+//             SQLiteOpenHelper db = datab.getInstance(MainActivity.this);
 
     }
 
@@ -88,7 +96,7 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                                 "   SET Delivered = 1\n" +
                                 "   WHERE " + "[Message ID] = '" + reset2.getString("Message ID") + "' AND Delivered = 0;");
                         //
-                        MainActivity activity = this.MyActivity.get();
+//                            MainActivity activity = this.MyActivity.get();
                         MObj = new MessageObject(reset2.getString("Message ID"), reset2.getString("User ID"),
                                 reset2.getString("Message Title"), reset2.getString("Message Body"), reset2.getDate("Insert Date").toString(), reset2.getInt("Delivered"));
                         db.addMessage(MObj);
@@ -145,13 +153,15 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
 //            return false;
         }
 
+//        onPostExecute();
         return FLag;
     }
 
 
     protected void onPostExecute() {
         // dismiss progress dialog and update ui
-//        ShowMessages(MObj);
+        Log.d("SQLite", "Begin to Show");
+//        ShowMessages(GetMessagesfromDB());
 
     }
 
@@ -159,7 +169,8 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
     public List<MessageObject> GetMessagesfromDB() {
 
 
-//        database =  db.getReadableDatabase();
+//        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
+        SQLiteDatabase database = db.getWritableDatabase();
         Cursor cursor = database.rawQuery("SELECT * " +
                 "FROM Messages ;", null);
 
@@ -168,13 +179,13 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
                     do {
-                        MessageObject MObj = new MessageObject();
-                        MObj.setMessageID(cursor.getString(1));
-                        MObj.setUserID(cursor.getString(2));
-                        MObj.setMessageTitle(cursor.getString(3));
-                        MObj.setMessageBody(cursor.getString(4));
-                        MObj.setInsertDate(cursor.getString(5));
-                        MObj.setDelivered(cursor.getInt(6));
+                        MObj = new MessageObject();
+                        MObj.setMessageID(cursor.getString(0));
+                        MObj.setUserID(cursor.getString(1));
+                        MObj.setMessageTitle(cursor.getString(2));
+                        MObj.setMessageBody(cursor.getString(3));
+                        MObj.setInsertDate(cursor.getString(4));
+                        MObj.setDelivered(Integer.valueOf(cursor.getString(5)));
 
                         MESSAGES.add(MObj);
                     } while (cursor.moveToNext());
@@ -187,32 +198,31 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
 
     }
 
-//    public void ShowMessages(List<MessageObject> Messages){
-//
-//        setContentView(R.layout.messages_layout);
-//        lv = (ListView) findViewById(R.id.list1);
-//
-//
-//        List<String> Mlist = new ArrayList<String>(); //Messages List
-//        List<String> Tlist = new ArrayList<String>(); //Title List
-//        List<String> Dlist = new ArrayList<String>(); //Date List
-//
-//        if(Messages != null) {
-//            Mlist.add(Messages.get(0).getMessageBody());
-//            Tlist.add(Messages.get(0).getMessageTitle());
-//            Dlist.add(Messages.get(0).getInsertDate());
-//        }
-//        // This is the array adapter, it takes the context of the activity as a
-//        // first parameter, the type of list view as a second parameter and your
-//        // array as a third parameter.
-//        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-//                this,
-//                android.R.layout.simple_list_item_1,
-//                Tlist );
-//
-//        lv.setAdapter(arrayAdapter);
-//
-//    }
+    public void ShowMessages(List<MessageObject> Messages) {
+
+        MainActivity activity = MyActivity.get();
+        activity.setContentView(R.layout.messages_layout);
+        lv = (ListView) activity.findViewById(R.id.list1);
 
 
+        List<String> Mlist = new ArrayList<String>(); //Messages List
+        List<String> Tlist = new ArrayList<String>(); //Title List
+        List<String> Dlist = new ArrayList<String>(); //Date List
+
+        if (Messages != null) {
+            Mlist.add(Messages.get(0).getMessageBody());
+            Tlist.add(Messages.get(0).getMessageTitle());
+            Dlist.add(Messages.get(0).getInsertDate());
+        }
+        // This is the array adapter, it takes the context of the activity as a
+        // first parameter, the type of list view as a second parameter and your
+        // array as a third parameter.
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                mContetx,
+                android.R.layout.simple_list_item_1,
+                Tlist);
+
+        lv.setAdapter(arrayAdapter);
+
+    }
 }
