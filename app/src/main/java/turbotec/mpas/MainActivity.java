@@ -32,8 +32,9 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity {
 
     public static DatabaseHandler db;
-    //    public static SQLiteDatabase database;
     public static List<MessageObject> MESSAGES;
+    //    public static SQLiteDatabase database;
+    public int Message_Number = 0;
     public MessageObject MObj;
     public SharedPreferenceHandler sp;
     public SharedPreferenceHandler share;
@@ -50,11 +51,12 @@ public class MainActivity extends AppCompatActivity {
 
             NetworkAsyncTask task = new NetworkAsyncTask(context, MainActivity.this);
             try {
-                result = task.execute(Userdata).get();
+                task.execute(Userdata).get();
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
-            ShowMessages(GetMessagesfromDB());
+            GetMessagesfromDB();
+            ShowMessages();
         }
     };
     private EditText UsernameView;
@@ -102,46 +104,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        MESSAGES = new ArrayList<MessageObject>();
-        share = SharedPreferenceHandler.getInstance(this);
+        MESSAGES = new ArrayList<>();
         db = DatabaseHandler.getInstance(this);
-
+        share = SharedPreferenceHandler.getInstance(this);
         registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
-//        database = t.getReadableDatabase();
-
-//        AlarmReceiver AR = new AlarmReceiver();
-//        registerReceiver(AR,);
-
-
-        UserName = share.GetUsername();
-        PassWord = share.GetPassword();
-        MyID = share.GetDeviceID();
-
-
-        UsernameView = (EditText) findViewById(R.id.editText2);
-        PasswordView = (EditText) findViewById(R.id.editText);
-        RegisterButton = (Button) findViewById(R.id.button);
-
-
-
-        RegisterButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                String Username = UsernameView.getText().toString();
-                String Password = PasswordView.getText().toString();
-                String DeviceID = getUniquePsuedoID();
-
-                Name = attemptLogin(Username, Password, DeviceID);
-//                Log.i("Successful Login ", "Welcome " + Name);
-            }
-        });
-
-        if ((!UserName.equals(getString(R.string.defaultValue))) && ((!PassWord.equals(getString(R.string.defaultValue)))) && (!MyID.equals(getString(R.string.defaultValue)))) {
-            setContentView(R.layout.waiting_layout);
+        if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
+                && (!share.GetPassword().equals(getString(R.string.defaultValue)))) {
+            setContentView(R.layout.activity_main_logged_in);
             boolean result = false;
-            String[] Userdetails = {UserName, PassWord, MyID};
+            String[] Userdetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
             NetworkAsyncTask task = new NetworkAsyncTask(this, this);
             try {
                 result = task.execute(Userdetails).get();
@@ -163,33 +134,95 @@ public class MainActivity extends AppCompatActivity {
                 manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
                 Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
                 Log.i("Alarm", "Set");
+                GetMessagesfromDB();
+                ShowMessages();
+            }
+        } else {
+
+
+//        database = t.getReadableDatabase();
+
+//        AlarmReceiver AR = new AlarmReceiver();
+//        registerReceiver(AR,);
+
+
+            UserName = share.GetUsername();
+            PassWord = share.GetPassword();
+            MyID = share.GetDeviceID();
+
+
+            UsernameView = (EditText) findViewById(R.id.editText2);
+            PasswordView = (EditText) findViewById(R.id.editText);
+            RegisterButton = (Button) findViewById(R.id.button);
+
+
+            RegisterButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    String Username = UsernameView.getText().toString();
+                    String Password = PasswordView.getText().toString();
+                    String DeviceID = getUniquePsuedoID();
+
+                    Name = attemptLogin(Username, Password, DeviceID);
+//                Log.i("Successful Login ", "Welcome " + Name);
+                }
+            });
+
+            if ((!UserName.equals(getString(R.string.defaultValue))) && ((!PassWord.equals(getString(R.string.defaultValue)))) && (!MyID.equals(getString(R.string.defaultValue)))) {
+                setContentView(R.layout.waiting_layout);
+                boolean result = false;
+                String[] Userdetails = {UserName, PassWord, MyID};
+                NetworkAsyncTask task = new NetworkAsyncTask(this, this);
+                try {
+                    result = task.execute(Userdetails).get();
+                } catch (ExecutionException | InterruptedException ei) {
+                    ei.printStackTrace();
+                }
+                if (result) {
+                    //set Repeating Alarm
+                    setContentView(R.layout.activity_main_logged_in);
+
+                    Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+                    pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+
+                    AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//                long interval = INTERVAL_FIFTEEN_MINUTES;
+                    int interval = 60000;
+
+//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+                    manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+                    Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+                    Log.i("Alarm", "Set");
+                    GetMessagesfromDB();
+                    ShowMessages();
 
 //                ShowMessages(GetMessagesfromDB());
 
-            } else {
-                //Error On LogIn
-                Log.w("ERROR", "Wrong Information");
-                Toast.makeText(this.getApplicationContext(),
-                        "Wrong Info", Toast.LENGTH_LONG).show();
-                final Intent intent = getIntent();
-                Thread thread = new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
-                            MainActivity.this.finish();
-                            startActivity(intent);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                } else {
+                    //Error On LogIn
+                    Log.w("ERROR", "Wrong Information");
+                    Toast.makeText(this.getApplicationContext(),
+                            "Wrong Info", Toast.LENGTH_LONG).show();
+                    final Intent intent = getIntent();
+                    Thread thread = new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
+                                MainActivity.this.finish();
+                                startActivity(intent);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-                    }
-                };
-                thread.start();
+                    };
+                    thread.start();
+                }
+
             }
 
         }
-
-
     }
 
 
@@ -304,33 +337,37 @@ public class MainActivity extends AppCompatActivity {
                         MESSAGES.add(MObj);
                     } while (cursor.moveToNext());
                 }
+                cursor.close();
             }
+
         } catch (Exception e) {
             e.getStackTrace();
         }
+
         return MESSAGES;
 
     }
 
-    public void ShowMessages(List<MessageObject> Messages) {
+    public void ShowMessages() {
 
         setContentView(R.layout.messages_layout);
         lv = (ListView) findViewById(R.id.list1);
 
 
-        List<String> Mlist = new ArrayList<String>(); //Messages List
-        List<String> Tlist = new ArrayList<String>(); //Title List
-        List<String> Dlist = new ArrayList<String>(); //Date List
+        List<String> Mlist = new ArrayList<>(); //Messages List
+        List<String> Tlist = new ArrayList<>(); //Title List
+        List<String> Dlist = new ArrayList<>(); //Date List
 
-        for (int i = 0; i < Messages.size(); i++) {
-            Mlist.add(Messages.get(i).getMessageBody());
-            Tlist.add(Messages.get(i).getMessageTitle());
-            Dlist.add(Messages.get(i).getInsertDate());
+        for (int i = Message_Number; i < MESSAGES.size(); i++) {
+            Mlist.add(MESSAGES.get(i).getMessageBody());
+            Tlist.add(MESSAGES.get(i).getMessageTitle());
+            Dlist.add(MESSAGES.get(i).getInsertDate());
         }
+        Message_Number = MESSAGES.size();
         // This is the array adapter, it takes the context of the activity as a
         // first parameter, the type of list view as a second parameter and your
         // array as a third parameter.
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
                 MainActivity.this,
                 android.R.layout.simple_list_item_1,
                 Tlist);

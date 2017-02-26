@@ -43,12 +43,24 @@ public class SharedPreferenceHandler {
     }
 
 
-//    public String GetID() {
-//
-//        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
-//        return sharedPref.getString(context.getString(R.string.ID), context.getString(R.string.defaultValue));
-//
-//    }
+    public void SaveUserID(String userID) {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(context.getString(R.string.UID), userID);
+        editor.apply();
+
+    }
+
+
+    public String GetUserID() {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        return sharedPref.getString(context.getString(R.string.UID), context.getString(R.string.defaultValue));
+
+    }
+
+
 
     public String GetDeviceID() {
 

@@ -19,10 +19,11 @@ import java.util.List;
 
 public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
 
-    public DatabaseHandler db;
-    public List<MessageObject> MESSAGES;
-    public MessageObject MObj;
-    Context mContetx;
+    private DatabaseHandler db;
+    private List<MessageObject> MESSAGES;
+    private MessageObject MObj;
+    private Context mContetx;
+    private SharedPreferenceHandler share;
     //        public SQLiteDatabase database;
     private WeakReference<MainActivity> MyActivity;
     private ListView lv;
@@ -30,7 +31,7 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
 //        private MessageObject MObj;
 
     public NetworkAsyncTask(Context context, MainActivity activity) {
-        this.MyActivity = new WeakReference<MainActivity>(activity);
+        this.MyActivity = new WeakReference<>(activity);
         mContetx = context;
     }
 
@@ -38,7 +39,8 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
         //display progress dialog.
         db = MainActivity.db;
 //            MObj = new MessageObject();
-        MESSAGES = new ArrayList<MessageObject>();
+        MESSAGES = new ArrayList<>();
+        share = SharedPreferenceHandler.getInstance(mContetx);
 //             db = datab.getInstance(MainActivity.this);
 //             SQLiteOpenHelper db = datab.getInstance(MainActivity.this);
 
@@ -85,16 +87,17 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                         "Where TbL_Users.id = '" + reset1.getString("id") + "' AND TbL_Users.DeviceID = '" + DeviceID + "';");
 
                 if (reset2.next()) {
+                    share.SaveUserID(reset1.getString("id"));
 
                     Statement stmt3 = conn.createStatement();
                     ResultSet reset3 = stmt3.executeQuery("Use MIGT_Automation\n" +
                             "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[User ID] = TbL_Users.id \n" +
-                            "Where TbL_Users.id = '" + reset1.getString("id") + "' AND Messages.Delivered = 0 AND TbL_Users.DeviceID = '" + DeviceID + "';");
+                            "Where TbL_Users.id = '" + reset2.getString("id") + "' AND Messages.Delivered = 0 AND TbL_Users.DeviceID = '" + DeviceID + "';");
                     if (reset3.next()) {
                         int UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
                                 "   update Messages\n" +
                                 "   SET Delivered = 1\n" +
-                                "   WHERE " + "[Message ID] = '" + reset2.getString("Message ID") + "' AND Delivered = 0;");
+                                "   WHERE " + "[Message ID] = '" + reset3.getString("Message ID") + "' AND Delivered = 0;");
                         //
 //                            MainActivity activity = this.MyActivity.get();
                         MObj = new MessageObject(reset3.getInt("Message ID"), reset3.getString("User ID"),
@@ -102,7 +105,8 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                         db.addMessage(MObj);
                         Log.i("User valid", "New message added");
                         while (reset3.next()) {
-                            UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
+//                            UpdateDeviceID =
+                            stmt4.executeUpdate("Use MIGT_Automation\n" +
                                     "   update Messages\n" +
                                     "   SET Delivered = 1\n" +
                                     "   WHERE " + "[Message ID] = '" + reset3.getString("Message ID") + "' AND Delivered = 0;");
@@ -190,10 +194,13 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                         MESSAGES.add(MObj);
                     } while (cursor.moveToNext());
                 }
+                cursor.close();
             }
+
         } catch (Exception e) {
             e.getStackTrace();
         }
+
         return MESSAGES;
 
     }
@@ -205,9 +212,9 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
         lv = (ListView) activity.findViewById(R.id.list1);
 
 
-        List<String> Mlist = new ArrayList<String>(); //Messages List
-        List<String> Tlist = new ArrayList<String>(); //Title List
-        List<String> Dlist = new ArrayList<String>(); //Date List
+        List<String> Mlist = new ArrayList<>(); //Messages List
+        List<String> Tlist = new ArrayList<>(); //Title List
+        List<String> Dlist = new ArrayList<>(); //Date List
 
         if (Messages != null) {
             Mlist.add(Messages.get(0).getMessageBody());
@@ -217,7 +224,7 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
         // This is the array adapter, it takes the context of the activity as a
         // first parameter, the type of list view as a second parameter and your
         // array as a third parameter.
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
                 mContetx,
                 android.R.layout.simple_list_item_1,
                 Tlist);
