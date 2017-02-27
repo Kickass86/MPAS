@@ -2,12 +2,13 @@ package turbotec.mpas;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import java.util.ArrayList;
-import java.util.List;
+//import android.database.Cursor;
+
+//import java.util.ArrayList;
+//import java.util.List;
 
 
 public class DatabaseHandler extends SQLiteOpenHelper {
@@ -78,96 +79,96 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
 
-    public List<MessageObject> getAllMessages(String DeviceID, String UserID) {
+//    public List<MessageObject> getAllMessages(String DeviceID, String UserID) {
+//
+//        List<MessageObject> messageList = new ArrayList<>();
+//        String selectQuery;
+//
+//        selectQuery = "SELECT  " + MESSAGE_ID + ", " + USER_ID + ", " + MESSAGE_Title +
+//                ", " + MESSAGE_BODY + ", " + INSERT_DATE + ", " + Delivered +
+//                " FROM " + TABLE_NAME + " WHERE " + USER_ID + " = '" + UserID +
+//                "' AND " + DeviceID + " = '" + DeviceID + "' " + " ORDER BY " +
+//                INSERT_DATE + " DESC;";
+//
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        Cursor cursor = db.rawQuery(selectQuery, null);
+//
+//        // looping through all rows and adding to list
+//        try {
+//            if (cursor != null) {
+//                if (cursor.moveToFirst()) {
+//                    do {
+//                        MessageObject messageObject = new MessageObject();
+//                        messageObject.setMessageID(cursor.getInt(0));
+//                        messageObject.setUserID(cursor.getString(1));
+//                        messageObject.setMessageTitle(cursor.getString(2));
+//                        messageObject.setMessageBody(cursor.getString(3));
+//                        messageObject.setInsertDate(cursor.getString(4));
+//                        messageObject.setDelivered(Integer.valueOf(cursor.getString(5)));
+//
+//                        // Adding contact to list
+//
+//                        messageList.add(messageObject);
+//
+//
+//                    } while (cursor.moveToNext());
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//
+//        cursor.close();
+//        return messageList;
+//
+//
+//    }
 
-        List<MessageObject> messageList = new ArrayList<MessageObject>();
-        String selectQuery;
-
-        selectQuery = "SELECT  " + MESSAGE_ID + ", " + USER_ID + ", " + MESSAGE_Title +
-                ", " + MESSAGE_BODY + ", " + INSERT_DATE + ", " + Delivered +
-                " FROM " + TABLE_NAME + " WHERE " + USER_ID + " = '" + UserID +
-                "' AND " + DeviceID + " = '" + DeviceID + "' " + " ORDER BY " +
-                INSERT_DATE + " DESC;";
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
-
-        // looping through all rows and adding to list
-        try {
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    do {
-                        MessageObject messageObject = new MessageObject();
-                        messageObject.setMessageID(cursor.getInt(0));
-                        messageObject.setUserID(cursor.getString(1));
-                        messageObject.setMessageTitle(cursor.getString(2));
-                        messageObject.setMessageBody(cursor.getString(3));
-                        messageObject.setInsertDate(cursor.getString(4));
-                        messageObject.setDelivered(Integer.valueOf(cursor.getString(5)));
-
-                        // Adding contact to list
-
-                        messageList.add(messageObject);
-
-
-                    } while (cursor.moveToNext());
-                }
-            }
-        } catch (Exception e) {
-
-        }
-
-
-        cursor.close();
-        return messageList;
-
-
-    }
-
-    public List<MessageObject> getAllMessages() {
-
-        List<MessageObject> messageList = new ArrayList<MessageObject>();
-        String selectQuery;
-
-        selectQuery = "SELECT  " + MESSAGE_ID + ", " + USER_ID + ", " + MESSAGE_Title +
-                ", " + MESSAGE_BODY + ", " + INSERT_DATE + ", " + Delivered +
-                " FROM " + TABLE_NAME + " " + " ORDER BY " +
-                INSERT_DATE + " DESC;";
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
-
-        // looping through all rows and adding to list
-        try {
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    do {
-                        MessageObject messageObject = new MessageObject();
-                        messageObject.setMessageID(cursor.getInt(0));
-                        messageObject.setUserID(cursor.getString(1));
-                        messageObject.setMessageTitle(cursor.getString(2));
-                        messageObject.setMessageBody(cursor.getString(3));
-                        messageObject.setInsertDate(cursor.getString(4));
-                        messageObject.setDelivered(Integer.valueOf(cursor.getString(5)));
-
-                        // Adding contact to list
-
-                        messageList.add(messageObject);
-
-
-                    } while (cursor.moveToNext());
-                }
-            }
-        } catch (Exception e) {
-
-        }
-
-
-        cursor.close();
-        return messageList;
-
-
-    }
+//    public List<MessageObject> getAllMessages() {
+//
+//        List<MessageObject> messageList = new ArrayList<>();
+//        String selectQuery;
+//
+//        selectQuery = "SELECT  " + MESSAGE_ID + ", " + USER_ID + ", " + MESSAGE_Title +
+//                ", " + MESSAGE_BODY + ", " + INSERT_DATE + ", " + Delivered +
+//                " FROM " + TABLE_NAME + " " + " ORDER BY " +
+//                INSERT_DATE + " DESC;";
+//
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        Cursor cursor = db.rawQuery(selectQuery, null);
+//
+//        // looping through all rows and adding to list
+//        try {
+//            if (cursor != null) {
+//                if (cursor.moveToFirst()) {
+//                    do {
+//                        MessageObject messageObject = new MessageObject();
+//                        messageObject.setMessageID(cursor.getInt(0));
+//                        messageObject.setUserID(cursor.getString(1));
+//                        messageObject.setMessageTitle(cursor.getString(2));
+//                        messageObject.setMessageBody(cursor.getString(3));
+//                        messageObject.setInsertDate(cursor.getString(4));
+//                        messageObject.setDelivered(Integer.valueOf(cursor.getString(5)));
+//
+//                        // Adding contact to list
+//
+//                        messageList.add(messageObject);
+//
+//
+//                    } while (cursor.moveToNext());
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//
+//        cursor.close();
+//        return messageList;
+//
+//
+//    }
 
 
 }

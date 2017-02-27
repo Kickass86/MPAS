@@ -1,7 +1,7 @@
 package turbotec.mpas;
 
 
-public class MessageObject {
+class MessageObject {
 
 
     private int MessageID;

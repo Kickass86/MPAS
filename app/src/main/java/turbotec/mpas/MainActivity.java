@@ -8,8 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -28,23 +26,23 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
+//import android.net.ConnectivityManager;
+//import android.net.NetworkInfo;
+
 
 public class MainActivity extends AppCompatActivity {
 
     public static DatabaseHandler db;
-    public static List<MessageObject> MESSAGES;
+    private static List<MessageObject> MESSAGES;
     //    public static SQLiteDatabase database;
-    public int Message_Number = 0;
-    public MessageObject MObj;
-    public SharedPreferenceHandler sp;
-    public SharedPreferenceHandler share;
-    private PendingIntent pendingIntent;
-    private ListView lv;
-    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+    private int Message_Number = 0;
+    //    private SharedPreferenceHandler sp;
+    private SharedPreferenceHandler share;
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            boolean result = false;
+//            boolean result = false;
             String[] Userdata = new String[]{share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
 
 //        Application ap = this. getApplication();
@@ -55,11 +53,12 @@ public class MainActivity extends AppCompatActivity {
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
-//            Log.i("Notify","is running");
+//            Log.i("is this ","running?");
             GetMessagesfromDB();
             ShowMessages();
         }
     };
+    private PendingIntent pendingIntent;
 //    BroadcastReceiver NotifyReceiver = new BroadcastReceiver() {
 //        @Override
 //        public void onReceive(Context context, Intent intent) {
@@ -81,20 +80,12 @@ public class MainActivity extends AppCompatActivity {
 //
 //        }
 //    };
-
-
-
-
     private EditText UsernameView;
     private EditText PasswordView;
-    private Button RegisterButton;
-    private String UserName;
-    private String PassWord;
-    private String MyID;
-    private String Name;
+    //    private String Name;
 
     @SuppressWarnings("deprecation")
-    public static String getUniquePsuedoID() {
+    private static String getUniquePsuedoID() {
 
         String m_szDevIDShort;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
@@ -119,13 +110,46 @@ public class MainActivity extends AppCompatActivity {
         return new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
     }
 
+    private static void GetMessagesfromDB() {
+
+
+//        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
+        SQLiteDatabase database = db.getWritableDatabase();
+        Cursor cursor = database.rawQuery("SELECT * " +
+                "FROM Messages ORDER BY MessageID DESC;", null);
+
+        // looping through all rows and adding to list
+        try {
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        MessageObject MObj = new MessageObject();
+                        MObj.setMessageID(cursor.getInt(0));
+                        MObj.setUserID(cursor.getString(1));
+                        MObj.setMessageTitle(cursor.getString(2));
+                        MObj.setMessageBody(cursor.getString(3));
+                        MObj.setInsertDate(cursor.getString(4));
+                        MObj.setDelivered(Integer.valueOf(cursor.getString(5)));
+
+                        MESSAGES.add(MObj);
+                    } while (cursor.moveToNext());
+                }
+                cursor.close();
+            }
+
+        } catch (Exception e) {
+            e.getStackTrace();
+        }
+
+
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(broadcastReceiver);
 //        unregisterReceiver(NotifyReceiver);
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,10 +164,10 @@ public class MainActivity extends AppCompatActivity {
                 && (!share.GetPassword().equals(getString(R.string.defaultValue)))) {
             setContentView(R.layout.activity_main_logged_in);
             boolean result = false;
-            String[] Userdetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
+            String[] UserDetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
             NetworkAsyncTask task = new NetworkAsyncTask(this, this);
             try {
-                result = task.execute(Userdetails).get();
+                result = task.execute(UserDetails).get();
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
@@ -152,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
                 setContentView(R.layout.activity_main_logged_in);
 
                 Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+                alarmIntent.setAction("Alarm");
                 pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
 
                 AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -174,17 +199,17 @@ public class MainActivity extends AppCompatActivity {
 //        registerReceiver(AR,);
 
 
-            UserName = share.GetUsername();
-            PassWord = share.GetPassword();
-            MyID = share.GetDeviceID();
+            String userName = share.GetUsername();
+            String passWord = share.GetPassword();
+            String myID = share.GetDeviceID();
 
 
             UsernameView = (EditText) findViewById(R.id.editText2);
             PasswordView = (EditText) findViewById(R.id.editText);
-            RegisterButton = (Button) findViewById(R.id.button);
+            Button registerButton = (Button) findViewById(R.id.button);
 
 
-            RegisterButton.setOnClickListener(new View.OnClickListener() {
+            registerButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
@@ -192,69 +217,69 @@ public class MainActivity extends AppCompatActivity {
                     String Password = PasswordView.getText().toString();
                     String DeviceID = getUniquePsuedoID();
 
-                    Name = attemptLogin(Username, Password, DeviceID);
+                    attemptLogin(Username, Password, DeviceID);
 //                Log.i("Successful Login ", "Welcome " + Name);
                 }
             });
 
-            if ((!UserName.equals(getString(R.string.defaultValue))) && ((!PassWord.equals(getString(R.string.defaultValue)))) && (!MyID.equals(getString(R.string.defaultValue)))) {
-                setContentView(R.layout.waiting_layout);
-                boolean result = false;
-                String[] Userdetails = {UserName, PassWord, MyID};
-                NetworkAsyncTask task = new NetworkAsyncTask(this, this);
-                try {
-                    result = task.execute(Userdetails).get();
-                } catch (ExecutionException | InterruptedException ei) {
-                    ei.printStackTrace();
-                }
-                if (result) {
-                    //set Repeating Alarm
-                    setContentView(R.layout.activity_main_logged_in);
-
-                    Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-                    pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
-
-                    AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-//                long interval = INTERVAL_FIFTEEN_MINUTES;
-                    int interval = 60000;
-
-//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-                    manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
-                    Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
-                    Log.i("Alarm", "Set");
-                    GetMessagesfromDB();
-                    ShowMessages();
-
-//                ShowMessages(GetMessagesfromDB());
-
-                } else {
-                    //Error On LogIn
-                    Log.w("ERROR", "Wrong Information");
-                    Toast.makeText(this.getApplicationContext(),
-                            "Wrong Info", Toast.LENGTH_LONG).show();
-                    final Intent intent = getIntent();
-                    Thread thread = new Thread() {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
-                                MainActivity.this.finish();
-                                startActivity(intent);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    };
-                    thread.start();
-                }
-
-            }
+//            if ((!userName.equals(getString(R.string.defaultValue))) && ((!passWord.equals(getString(R.string.defaultValue)))) && (!myID.equals(getString(R.string.defaultValue)))) {
+//                setContentView(R.layout.waiting_layout);
+//                boolean result = false;
+//                String[] UserDetails = {userName, passWord, myID};
+//                NetworkAsyncTask task = new NetworkAsyncTask(this, this);
+//                try {
+//                    result = task.execute(UserDetails).get();
+//                } catch (ExecutionException | InterruptedException ei) {
+//                    ei.printStackTrace();
+//                }
+//                if (result) {
+//                    //set Repeating Alarm
+//                    setContentView(R.layout.activity_main_logged_in);
+//
+//                    Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+//                    alarmIntent.setAction("Alarm");
+//                    pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+//
+//                    AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+////                long interval = INTERVAL_FIFTEEN_MINUTES;
+//                    int interval = 60000;
+//
+////                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+//                    manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+//                    Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+//                    Log.i("Alarm", "Set");
+//                    GetMessagesfromDB();
+//                    ShowMessages();
+//
+////                ShowMessages(GetMessagesfromDB());
+//
+//                } else {
+//                    //Error On LogIn
+//                    Log.w("ERROR", "Wrong Information");
+//                    Toast.makeText(this.getApplicationContext(),
+//                            "Wrong Info", Toast.LENGTH_LONG).show();
+//                    final Intent intent = getIntent();
+//                    Thread thread = new Thread() {
+//                        @Override
+//                        public void run() {
+//                            try {
+//                                Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
+//                                MainActivity.this.finish();
+//                                startActivity(intent);
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    };
+//                    thread.start();
+//                }
+//
+//            }
 
         }
     }
 
-
-    public String attemptLogin(String username, String password, String DeviceID) {
+    private void attemptLogin(String username, String password, String DeviceID) {
 
         boolean result = false;
 
@@ -298,6 +323,7 @@ public class MainActivity extends AppCompatActivity {
                 setContentView(R.layout.activity_main_logged_in);
 
                 Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+                alarmIntent.setAction("Alarm");
                 pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
 
                 AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -309,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
                 Log.i("Alarm", "Set");
 
-//                ShowMessages(GetMessagesfromDB());
+//                ShowMessages();
 
 
             } else {
@@ -335,51 +361,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         }
-        return null;
 
 
 
     }
 
-    public List<MessageObject> GetMessagesfromDB() {
-
-
-//        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
-        SQLiteDatabase database = db.getWritableDatabase();
-        Cursor cursor = database.rawQuery("SELECT * " +
-                "FROM Messages ORDER BY MessageID DESC;", null);
-
-        // looping through all rows and adding to list
-        try {
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    do {
-                        MObj = new MessageObject();
-                        MObj.setMessageID(cursor.getInt(0));
-                        MObj.setUserID(cursor.getString(1));
-                        MObj.setMessageTitle(cursor.getString(2));
-                        MObj.setMessageBody(cursor.getString(3));
-                        MObj.setInsertDate(cursor.getString(4));
-                        MObj.setDelivered(Integer.valueOf(cursor.getString(5)));
-
-                        MESSAGES.add(MObj);
-                    } while (cursor.moveToNext());
-                }
-                cursor.close();
-            }
-
-        } catch (Exception e) {
-            e.getStackTrace();
-        }
-
-        return MESSAGES;
-
-    }
-
-    public void ShowMessages() {
+    private void ShowMessages() {
 
         setContentView(R.layout.messages_layout);
-        lv = (ListView) findViewById(R.id.list1);
+        ListView lv = (ListView) findViewById(R.id.list1);
 
 
         List<String> Mlist = new ArrayList<>(); //Messages List
@@ -405,14 +395,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public Boolean CheckInternetAvailability() {
-
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-
-    }
+//    public Boolean CheckInternetAvailability() {
+//
+//        ConnectivityManager connectivityManager
+//                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+//        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+//        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+//
+//    }
 
 
 //    //AlarmReceiver

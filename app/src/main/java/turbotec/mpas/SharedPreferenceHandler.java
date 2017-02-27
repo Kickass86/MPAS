@@ -10,8 +10,8 @@ public class SharedPreferenceHandler {
     private Context context = null;
 
 
-    public SharedPreferenceHandler() {
-    }
+//    public SharedPreferenceHandler() {
+//    }
 
     private SharedPreferenceHandler(Context act) {
         context = act;
