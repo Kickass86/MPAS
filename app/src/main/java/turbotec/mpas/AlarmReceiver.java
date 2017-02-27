@@ -1,6 +1,7 @@
 package turbotec.mpas;
 
 
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -19,11 +20,16 @@ import java.util.concurrent.ExecutionException;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
+    public static DatabaseHandler db;
     //    private SharedPreferenceHandler shareP;
     private SharedPreferenceHandler share;
     private WeakReference<MainActivity> MyActivity;
     //    private MainActivity MyActivity;
-    private String[] Userdata;
+    private String Title;
+    private String Content;
+    private int ID;
+    private Context mContext;
+    private MessageObject MObj;
 
 
     public AlarmReceiver() {
@@ -33,13 +39,14 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 
     @Override
-    public void onReceive(Context context, Intent intent) {
-
-        context.sendBroadcast(new Intent("Alarm fire"));
+    public void onReceive(final Context context, Intent intent) {
+        mContext = context;
+        mContext.sendBroadcast(new Intent("Alarm fire"));
 //        Toast.makeText(context, "Alarm fired now!", Toast.LENGTH_SHORT).show();
         Log.v("AAA", "Alarm fired now!");
 
         share = SharedPreferenceHandler.getInstance(context);
+        db = DatabaseHandler.getInstance(context);
 
         final String[] Userdata = new String[]{share.GetUserID(), share.GetDeviceID()};
 
@@ -49,7 +56,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             @Override
             protected Boolean doInBackground(Object... params) {
 
-                Boolean b = false;
+                Boolean z = false;
                 Object UserID = params[0];
                 Object DeviceID = params[1];
 
@@ -70,19 +77,91 @@ public class AlarmReceiver extends BroadcastReceiver {
                     conn = DriverManager.getConnection(connString);
                     Log.w("wake up check", "check to invoke activity");
                     Statement stmt1 = conn.createStatement();
+                    Statement stmt2 = conn.createStatement();
                     ResultSet reset1 = stmt1.executeQuery("Use MIGT_Automation\n" +
                             "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[User ID] = TbL_Users.id \n" +
                             " WHERE Messages.[User ID] = '" +
                             UserID + "' AND Messages.Delivered = 0" +
                             " AND TbL_Users.DeviceID = '" + DeviceID + "';");
 
-                    b = reset1.next();
+//                    b = reset1.next();
+
+                    if (reset1.next()) {
+                        MObj = new MessageObject(reset1.getInt("Message ID"), reset1.getString("User ID"),
+                                reset1.getString("Message Title"), reset1.getString("Message Body"), reset1.getDate("Insert Date").toString(), reset1.getInt("Delivered"));
+                        db.addMessage(MObj);
+
+                        stmt2.executeUpdate("Use MIGT_Automation\n" +
+                                "   update Messages\n" +
+                                "   SET Delivered = 1\n" +
+                                "   WHERE " + "[Message ID] = '" + reset1.getString("Message ID") + "' AND Delivered = 0;");
+                        Log.i("User valid", "New message added");
+//                        Intent ii = new Intent("Notification fire");
+//                        ii.putExtra("Title",reset1.getString("Message Title"));
+//                        ii.putExtra("ID",reset1.getInt("Message ID"));
+//                        ii.setFlags(FLAG_INCLUDE_STOPPED_PACKAGES);
+                        Title = reset1.getString("Message Title");
+                        ID = reset1.getInt("Message ID");
+                        Content = reset1.getString("Message Body");
+
+
+                        android.support.v4.app.NotificationCompat.Builder mBuilder =
+                                new android.support.v4.app.NotificationCompat.Builder(context)
+                                        .setSmallIcon(R.mipmap.ic_launcher)
+                                        .setContentTitle(Title)
+                                        .setContentText(Content);
+
+                        NotificationManager mNotificationManager =
+                                (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                        Log.i("Notify", "is running");
+                        mNotificationManager.notify(ID, mBuilder.build());
+
+
+//                        mContext.sendBroadcast(ii);
+                        while (reset1.next()) {
+//                            UpdateDeviceID =
+                            stmt2.executeUpdate("Use MIGT_Automation\n" +
+                                    "   update Messages\n" +
+                                    "   SET Delivered = 1\n" +
+                                    "   WHERE " + "[Message ID] = '" + reset1.getString("Message ID") + "' AND Delivered = 0;");
+
+                            MObj = new MessageObject(reset1.getInt("Message ID"), reset1.getString("User ID"),
+                                    reset1.getString("Message Title"), reset1.getString("Message Body"), reset1.getDate("Insert Date").toString(), reset1.getInt("Delivered"));
+                            db.addMessage(MObj);
+//                            Intent ii2 = new Intent("Notification fire");
+//                            ii2.putExtra("Title",reset1.getString("Message Title"));
+//                            ii2.putExtra("ID",reset1.getInt("Message ID"));
+//                            ii2.setFlags(FLAG_INCLUDE_STOPPED_PACKAGES);
+//                            mContext.sendBroadcast(ii2);
+
+                            Title = reset1.getString("Message Title");
+                            ID = reset1.getInt("Message ID");
+                            Content = reset1.getString("Message Body");
+
+
+                            mBuilder =
+                                    new android.support.v4.app.NotificationCompat.Builder(context)
+                                            .setSmallIcon(R.mipmap.ic_launcher)
+                                            .setContentTitle(Title)
+                                            .setContentText(Content);
+
+                            mNotificationManager =
+                                    (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                            Log.i("Notify", "is running");
+                            mNotificationManager.notify(ID, mBuilder.build());
+
+
+                        }
+
+                        z = true;
+
+                    }
 
 
                 } catch (IllegalAccessException | InstantiationException | SQLException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
-                return b;
+                return z;
             }
         };
 
@@ -93,11 +172,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
-        if (b) {
-            Intent i = new Intent(context, MainActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(i);
-        }
+
 //        shareP = myActivity.sp;
 
 //        this.sp = new WeakReference<SharedPreferenceHandler>(myActivity.sp);

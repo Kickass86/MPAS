@@ -55,10 +55,36 @@ public class MainActivity extends AppCompatActivity {
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
+//            Log.i("Notify","is running");
             GetMessagesfromDB();
             ShowMessages();
         }
     };
+//    BroadcastReceiver NotifyReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//
+//            Bundle extras = intent.getExtras();
+//
+//
+//            NotificationCompat.Builder mBuilder =
+//                    new NotificationCompat.Builder(context)
+//                            .setSmallIcon(R.mipmap.ic_launcher)
+//                            .setContentTitle(extras.getString("Title"))
+//                            .setContentText("Hello ");
+//
+//            NotificationManager mNotificationManager =
+//                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//            Log.i("Notify","is running");
+//// mId allows you to update the notification later on.
+//            mNotificationManager.notify(extras.getInt("ID"), mBuilder.build());
+//
+//        }
+//    };
+
+
+
+
     private EditText UsernameView;
     private EditText PasswordView;
     private Button RegisterButton;
@@ -97,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(broadcastReceiver);
+//        unregisterReceiver(NotifyReceiver);
     }
 
 
@@ -108,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
         db = DatabaseHandler.getInstance(this);
         share = SharedPreferenceHandler.getInstance(this);
         registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
+//        registerReceiver(NotifyReceiver, new IntentFilter("Notification fire"));
         if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
                 && (!share.GetPassword().equals(getString(R.string.defaultValue)))) {
             setContentView(R.layout.activity_main_logged_in);
@@ -319,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
 //        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
         SQLiteDatabase database = db.getWritableDatabase();
         Cursor cursor = database.rawQuery("SELECT * " +
-                "FROM Messages ;", null);
+                "FROM Messages ORDER BY MessageID DESC;", null);
 
         // looping through all rows and adding to list
         try {

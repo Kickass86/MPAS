@@ -176,7 +176,7 @@ public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
 //        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
         SQLiteDatabase database = db.getWritableDatabase();
         Cursor cursor = database.rawQuery("SELECT * " +
-                "FROM Messages ;", null);
+                "FROM Messages ORDER BY MessageID DESC;", null);
 
         // looping through all rows and adding to list
         try {
