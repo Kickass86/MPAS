@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 public class AlarmReceiver extends BroadcastReceiver {
 
     public static DatabaseHandler db;
+    Boolean b = false;
     //    private SharedPreferenceHandler shareP;
     private SharedPreferenceHandler share;
     private WeakReference<MainActivity> MyActivity;
@@ -103,7 +104,12 @@ public class AlarmReceiver extends BroadcastReceiver {
                         Title = reset1.getString("Message Title");
                         ID = reset1.getInt("Message ID");
                         Content = reset1.getString("Message Body");
-
+                        b = reset1.getBoolean("Critical");
+                        if (b) {
+                            Intent i = new Intent(context, MainActivity.class);
+                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            context.startActivity(i);
+                        }
 
                         android.support.v4.app.NotificationCompat.Builder mBuilder =
                                 new android.support.v4.app.NotificationCompat.Builder(context)
@@ -137,6 +143,12 @@ public class AlarmReceiver extends BroadcastReceiver {
                             Title = reset1.getString("Message Title");
                             ID = reset1.getInt("Message ID");
                             Content = reset1.getString("Message Body");
+                            b = reset1.getBoolean("Critical");
+                            if (b) {
+                                Intent i = new Intent(context, MainActivity.class);
+                                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(i);
+                            }
 
 
                             mBuilder =
@@ -165,7 +177,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             }
         };
 
-        Boolean b = false;
+
         try {
             b = (Boolean) task.execute(Userdata).get();
 
