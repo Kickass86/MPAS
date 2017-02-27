@@ -1,6 +1,7 @@
 package turbotec.mpas;
 
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -149,6 +150,14 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         unregisterReceiver(broadcastReceiver);
 //        unregisterReceiver(NotifyReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nMgr.cancelAll();
     }
 
     @Override

@@ -3,6 +3,7 @@ package turbotec.mpas;
 
 import android.app.ActivityManager;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -74,7 +75,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             final String[] Userdata = new String[]{share.GetUserID(), share.GetDeviceID()};
 
-            AsyncTask task = new AsyncTask<Object, Boolean, Boolean>() {
+            final AsyncTask task = new AsyncTask<Object, Boolean, Boolean>() {
 
 
                 @Override
@@ -141,11 +142,21 @@ public class AlarmReceiver extends BroadcastReceiver {
                             } else {
                                 if (!InForeground) {
 
+                                    Intent nid = new Intent(mContext, MainActivity.class);
+                                    PendingIntent ci = PendingIntent.getActivity(mContext, 0, nid, 0);
+
                                     mBuilder =
                                             new android.support.v4.app.NotificationCompat.Builder(context)
                                                     .setSmallIcon(R.mipmap.ic_launcher)
                                                     .setContentTitle(Title)
+                                                    .setContentIntent(ci)
+                                                    .setAutoCancel(true)
                                                     .setContentText(Content);
+
+                                    Intent notificationIntent = new Intent(mContext, MainActivity.class);
+
+//                                    notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+//                                            | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
 
                                     Log.i("Notify", "is running");
@@ -184,10 +195,15 @@ public class AlarmReceiver extends BroadcastReceiver {
 
                                     if (!InForeground) {
 
+                                        Intent nid = new Intent(mContext, MainActivity.class);
+                                        PendingIntent ci = PendingIntent.getActivity(mContext, 0, nid, 0);
+
                                         mBuilder =
                                                 new android.support.v4.app.NotificationCompat.Builder(context)
                                                         .setSmallIcon(R.mipmap.ic_launcher)
                                                         .setContentTitle(Title)
+                                                        .setContentIntent(ci)
+                                                        .setAutoCancel(true)
                                                         .setContentText(Content);
 
                                         mNotificationManager =
