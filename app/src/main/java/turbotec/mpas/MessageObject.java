@@ -13,18 +13,30 @@ class MessageObject {
     private String InsertDate;
     private int Delivered;
 
-    public MessageObject(int MessageID, String UserID, String MessageTitle, String MessageBody, String InsertDate, int Delivered) {
+
+    private Boolean Critical;
+
+    public MessageObject(int MessageID, String UserID, String MessageTitle, String MessageBody, String InsertDate, int Delivered, Boolean Critical) {
         this.MessageID = MessageID;
         this.UserID = UserID;
         this.MessageTitle = MessageTitle;
         this.MessageBody = MessageBody;
         this.InsertDate = InsertDate;
         this.Delivered = Delivered;
+        this.Critical = Critical;
 
     }
 
     public MessageObject() {
 
+    }
+
+    public Boolean getCritical() {
+        return Critical;
+    }
+
+    public void setCritical(Boolean critical) {
+        Critical = critical;
     }
 
     public int getDelivered() {

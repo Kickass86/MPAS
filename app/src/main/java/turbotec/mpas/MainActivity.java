@@ -20,6 +20,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -391,6 +392,10 @@ public class MainActivity extends AppCompatActivity {
             Dlist.add(MESSAGES.get(i).getInsertDate());
         }
         Message_Number = MESSAGES.size();
+        if (MESSAGES.isEmpty()) {
+            TextView emptyText = (TextView) findViewById(android.R.id.empty);
+            lv.setEmptyView(emptyText);
+        }
         // This is the array adapter, it takes the context of the activity as a
         // first parameter, the type of list view as a second parameter and your
         // array as a third parameter.

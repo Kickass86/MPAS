@@ -2,6 +2,7 @@ package turbotec.mpas;
 
 
 import android.app.ActivityManager;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -117,7 +118,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
                         if (reset1.next()) {
                             MObj = new MessageObject(reset1.getInt("Message ID"), reset1.getString("User ID"),
-                                    reset1.getString("Message Title"), reset1.getString("Message Body"), reset1.getDate("Insert Date").toString(), reset1.getInt("Delivered"));
+                                    reset1.getString("Message Title"), reset1.getString("Message Body"), reset1.getDate("Insert Date").toString(), reset1.getInt("Delivered"), reset1.getBoolean("Critical"));
                             db.addMessage(MObj);
 
                             stmt2.executeUpdate("Use MIGT_Automation\n" +
@@ -151,6 +152,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                                                     .setContentTitle(Title)
                                                     .setContentIntent(ci)
                                                     .setAutoCancel(true)
+                                                    .setDefaults(Notification.DEFAULT_ALL)
+                                                    .setVibrate(new long[]{1000, 1000, 1000, 1000, 1000})
                                                     .setContentText(Content);
 
                                     Intent notificationIntent = new Intent(mContext, MainActivity.class);
@@ -173,7 +176,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                                         "   WHERE " + "[Message ID] = '" + reset1.getString("Message ID") + "' AND Delivered = 0;");
 
                                 MObj = new MessageObject(reset1.getInt("Message ID"), reset1.getString("User ID"),
-                                        reset1.getString("Message Title"), reset1.getString("Message Body"), reset1.getDate("Insert Date").toString(), reset1.getInt("Delivered"));
+                                        reset1.getString("Message Title"), reset1.getString("Message Body"), reset1.getDate("Insert Date").toString(), reset1.getInt("Delivered"), reset1.getBoolean("Critical"));
                                 db.addMessage(MObj);
 //                            Intent ii2 = new Intent("Notification fire");
 //                            ii2.putExtra("Title",reset1.getString("Message Title"));
@@ -204,6 +207,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                                                         .setContentTitle(Title)
                                                         .setContentIntent(ci)
                                                         .setAutoCancel(true)
+                                                        .setDefaults(Notification.DEFAULT_ALL)
+                                                        .setVibrate(new long[]{1000, 1000, 1000, 1000, 1000})
                                                         .setContentText(Content);
 
                                         mNotificationManager =

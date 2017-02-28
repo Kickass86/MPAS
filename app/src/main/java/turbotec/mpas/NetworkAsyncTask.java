@@ -96,7 +96,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                         //
 //                            MainActivity activity = this.MyActivity.get();
                         MessageObject MObj = new MessageObject(reset3.getInt("Message ID"), reset3.getString("User ID"),
-                                reset3.getString("Message Title"), reset3.getString("Message Body"), reset3.getDate("Insert Date").toString(), reset3.getInt("Delivered"));
+                                reset3.getString("Message Title"), reset3.getString("Message Body"), reset3.getDate("Insert Date").toString(), reset3.getInt("Delivered"), reset3.getBoolean("Critical"));
                         db.addMessage(MObj);
                         Log.i("User valid", "New message added");
                         while (reset3.next()) {
@@ -107,7 +107,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                                     "   WHERE " + "[Message ID] = '" + reset3.getString("Message ID") + "' AND Delivered = 0;");
 
                             MObj = new MessageObject(reset3.getInt("Message ID"), reset3.getString("User ID"),
-                                    reset3.getString("Message Title"), reset3.getString("Message Body"), reset3.getDate("Insert Date").toString(), reset3.getInt("Delivered"));
+                                    reset3.getString("Message Title"), reset3.getString("Message Body"), reset3.getDate("Insert Date").toString(), reset3.getInt("Delivered"), reset3.getBoolean("Critical"));
                             db.addMessage(MObj);
                         }
                         FLag = true;

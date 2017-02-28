@@ -6,6 +6,7 @@
     <string name="PREFERENCE_FILE">turbotec.mpas.PREFERENCE_FILE</string>
     <string name="Username_Password_File">LoginDetails</string>
     <string name="UID">UID</string>
+    <string name="empty_list">No message</string>
     <string name="Username">Username</string>
     <string name="Password">Password</string>
     <string name="Wait">Please wait</string>

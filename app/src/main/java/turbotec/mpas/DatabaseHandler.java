@@ -26,6 +26,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String MESSAGE_BODY = "MessageBody";
     private static final String INSERT_DATE = "InsertDate";
     private static final String Delivered = "Delivered";
+    private static final String Critical = "Critical";
     private static DatabaseHandler instance;
 
 
@@ -46,7 +47,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String CREATE_MESSAGES_TABLE = "CREATE TABLE " + TABLE_NAME + "(" +
                 MESSAGE_ID + " INTEGER PRIMARY KEY," + USER_ID + " TEXT," +
                 MESSAGE_Title + " TEXT," + MESSAGE_BODY + " TEXT," + INSERT_DATE +
-                " TEXT," + Delivered + " INTEGER" + ")";
+                " TEXT," + Delivered + " INTEGER," + Critical + " Boolean)";
         db.execSQL(CREATE_MESSAGES_TABLE);
     }
 
@@ -71,6 +72,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(MESSAGE_BODY, messageObject.getMessageBody());
         values.put(INSERT_DATE, messageObject.getInsertDate());
         values.put(Delivered, messageObject.getDelivered());
+        values.put(Critical, messageObject.getCritical());
 
 
         // Inserting Row
