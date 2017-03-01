@@ -1,9 +1,11 @@
 package turbotec.mpas;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -45,19 +47,22 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
 
 //            boolean result = false;
-            String[] Userdata = new String[]{share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
-
+//            String[] Userdata = new String[]{share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
+//
 //        Application ap = this. getApplication();
-
-            NetworkAsyncTask task = new NetworkAsyncTask(context, MainActivity.this);
-            try {
-                task.execute(Userdata).get();
-            } catch (ExecutionException | InterruptedException ei) {
-                ei.printStackTrace();
+//
+//            NetworkAsyncTask task = new NetworkAsyncTask(context, isAppForeground(context));
+//            try {
+//                task.execute(Userdata).get();
+            if (share.GetActivation().equals(getString(R.string.Active))) {
+                GetMessagesfromDB();
+                ShowMessages();
             }
+//            } catch (ExecutionException | InterruptedException ei) {
+//                ei.printStackTrace();
+//            }
 //            Log.i("is this ","running?");
-            GetMessagesfromDB();
-            ShowMessages();
+
         }
     };
     private PendingIntent pendingIntent;
@@ -84,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
 //    };
     private EditText UsernameView;
     private EditText PasswordView;
-    //    private String Name;
 
     @SuppressWarnings("deprecation")
     private static String getUniquePsuedoID() {
@@ -111,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
     }
+    //    private String Name;
 
     private static void GetMessagesfromDB() {
 
@@ -132,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                         MObj.setMessageBody(cursor.getString(3));
                         MObj.setInsertDate(cursor.getString(4));
                         MObj.setDelivered(Integer.valueOf(cursor.getString(5)));
+                        MObj.setCritical(cursor.getInt(6));
 
                         MESSAGES.add(MObj);
                     } while (cursor.moveToNext());
@@ -144,6 +150,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+    }
+
+    private boolean isAppForeground(Context mContext) {
+
+        ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+        if (!tasks.isEmpty()) {
+            ComponentName topActivity = tasks.get(0).topActivity;
+            if (!topActivity.getPackageName().equals(mContext.getPackageName())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
@@ -169,13 +189,14 @@ public class MainActivity extends AppCompatActivity {
         db = DatabaseHandler.getInstance(this);
         share = SharedPreferenceHandler.getInstance(this);
         registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
+
 //        registerReceiver(NotifyReceiver, new IntentFilter("Notification fire"));
         if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
-                && (!share.GetPassword().equals(getString(R.string.defaultValue)))) {
+                && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.Active)))) {
             setContentView(R.layout.activity_main_logged_in);
             boolean result = false;
             String[] UserDetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
-            NetworkAsyncTask task = new NetworkAsyncTask(this, this);
+            NetworkAsyncTask task = new NetworkAsyncTask(this);
             try {
                 result = task.execute(UserDetails).get();
             } catch (ExecutionException | InterruptedException ei) {
@@ -197,40 +218,62 @@ public class MainActivity extends AppCompatActivity {
                 manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
                 Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
                 Log.i("Alarm", "Set");
-                GetMessagesfromDB();
-                ShowMessages();
+                if (share.GetActivation().equals(getString(R.string.Active))) {
+                    GetMessagesfromDB();
+                    ShowMessages();
+                }
             }
         } else {
 
+            if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
+                    && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.NotActive)))) {
+                setContentView(R.layout.wait_for_activation_layout);
+                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+                alarmIntent.setAction("Alarm");
+                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
 
+                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//                long interval = INTERVAL_FIFTEEN_MINUTES;
+                int interval = 60000;
+
+//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+                Log.i("Alarm", "Set");
+                if (share.GetActivation().equals(getString(R.string.Active))) {
+                    GetMessagesfromDB();
+                    ShowMessages();
+                }
+            } else {
 //        database = t.getReadableDatabase();
 
 //        AlarmReceiver AR = new AlarmReceiver();
 //        registerReceiver(AR,);
 
 
-            String userName = share.GetUsername();
-            String passWord = share.GetPassword();
-            String myID = share.GetDeviceID();
+//            String userName = share.GetUsername();
+//            String passWord = share.GetPassword();
+//            String myID = share.GetDeviceID();
 
 
-            UsernameView = (EditText) findViewById(R.id.editText2);
-            PasswordView = (EditText) findViewById(R.id.editText);
-            Button registerButton = (Button) findViewById(R.id.button);
+                UsernameView = (EditText) findViewById(R.id.editText2);
+                PasswordView = (EditText) findViewById(R.id.editText);
+                Button registerButton = (Button) findViewById(R.id.button);
 
 
-            registerButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
+                registerButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
 
-                    String Username = UsernameView.getText().toString();
-                    String Password = PasswordView.getText().toString();
-                    String DeviceID = getUniquePsuedoID();
+                        String Username = UsernameView.getText().toString();
+                        String Password = PasswordView.getText().toString();
+                        String DeviceID = getUniquePsuedoID();
 
-                    attemptLogin(Username, Password, DeviceID);
+                        attemptLogin(Username, Password, DeviceID);
 //                Log.i("Successful Login ", "Welcome " + Name);
-                }
-            });
+                    }
+                });
+            }
 
 //            if ((!userName.equals(getString(R.string.defaultValue))) && ((!passWord.equals(getString(R.string.defaultValue)))) && (!myID.equals(getString(R.string.defaultValue)))) {
 //                setContentView(R.layout.waiting_layout);
@@ -320,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // save data in local shared preferences
             String[] Userdata = {username, password, DeviceID};
-            NetworkAsyncTask task = new NetworkAsyncTask(this, this);
+            NetworkAsyncTask task = new NetworkAsyncTask(this);
             try {
                 result = task.execute(Userdata).get();
             } catch (ExecutionException | InterruptedException ei) {
@@ -330,7 +373,8 @@ public class MainActivity extends AppCompatActivity {
 
                 share.SaveDeviceID(DeviceID);
                 share.SaveLoginDetails(username, password);
-                setContentView(R.layout.activity_main_logged_in);
+                share.SaveActivation(getString(R.string.NotActive));
+                setContentView(R.layout.wait_for_activation_layout);
 
                 Intent alarmIntent = new Intent(this, AlarmReceiver.class);
                 alarmIntent.setAction("Alarm");
@@ -535,34 +579,34 @@ public class MainActivity extends AppCompatActivity {
 //                if (b) {
 //                    Statement stmt2 = conn.createStatement();
 //                    ResultSet reset2 = stmt2.executeQuery("Use MIGT_Automation\n" +
-//                            "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[User ID] = TbL_Users.id \n" +
+//                            "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[UserID] = TbL_Users.id \n" +
 //                            "Where TbL_Users.id = '" + reset1.getString("id") + "' AND TbL_Users.DeviceID = '" + DeviceID + "';");
 //
 //                    if (reset2.next()) {
 //
 //                        Statement stmt3 = conn.createStatement();
 //                        ResultSet reset3 = stmt3.executeQuery("Use MIGT_Automation\n" +
-//                                "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[User ID] = TbL_Users.id \n" +
+//                                "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[UserID] = TbL_Users.id \n" +
 //                                "Where TbL_Users.id = '" + reset1.getString("id") + "' AND Messages.Delivered = 0 AND TbL_Users.DeviceID = '" + DeviceID + "';");
 //                        if (reset3.next()) {
 //                            int UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
 //                                    "   update Messages\n" +
 //                                    "   SET Delivered = 1\n" +
-//                                    "   WHERE " + "[Message ID] = '" + reset2.getString("Message ID") + "' AND Delivered = 0;");
+//                                    "   WHERE " + " MessageID = '" + reset2.getString("MessageID") + "' AND Delivered = 0;");
 //                            //
 ////                            MainActivity activity = this.MyActivity.get();
-//                            MObj = new MessageObject(reset2.getString("Message ID"), reset2.getString("User ID"),
-//                                    reset2.getString("Message Title"), reset2.getString("Message Body"), reset2.getDate("Insert Date").toString(), reset2.getInt("Delivered"));
+//                            MObj = new MessageObject(reset2.getString("MessageID"), reset2.getString("UserID"),
+//                                    reset2.getString("MessageTitle"), reset2.getString("MessageBody"), reset2.getDate("InsertDate").toString(), reset2.getInt("Delivered"));
 //                            db.addMessage(MObj);
 //                            Log.i("User valid", "New message added");
 //                            while (reset2.next()) {
 //                                UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
 //                                        "   update Messages\n" +
 //                                        "   SET Delivered = 1\n" +
-//                                        "   WHERE " + "[Message ID] = '" + reset2.getString("Message ID") + "' AND Delivered = 0;");
+//                                        "   WHERE " + "MessageID = '" + reset2.getString("MessageID") + "' AND Delivered = 0;");
 //
-//                                MObj = new MessageObject(reset2.getString("Message ID"), reset2.getString("User ID"),
-//                                        reset2.getString("Message Title"), reset2.getString("Message Body"), reset2.getDate("Insert Date").toString(), reset2.getInt("Delivered"));
+//                                MObj = new MessageObject(reset2.getString("MessageID"), reset2.getString("UserID"),
+//                                        reset2.getString("MessageTitle"), reset2.getString("MessageBody"), reset2.getDate("InsertDate").toString(), reset2.getInt("Delivered"));
 //                                db.addMessage(MObj);
 //                            }
 //                            FLag = true;

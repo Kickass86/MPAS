@@ -14,9 +14,9 @@ class MessageObject {
     private int Delivered;
 
 
-    private Boolean Critical;
+    private int Critical;
 
-    public MessageObject(int MessageID, String UserID, String MessageTitle, String MessageBody, String InsertDate, int Delivered, Boolean Critical) {
+    public MessageObject(int MessageID, String UserID, String MessageTitle, String MessageBody, String InsertDate, int Delivered, int Critical) {
         this.MessageID = MessageID;
         this.UserID = UserID;
         this.MessageTitle = MessageTitle;
@@ -31,11 +31,11 @@ class MessageObject {
 
     }
 
-    public Boolean getCritical() {
+    public int getCritical() {
         return Critical;
     }
 
-    public void setCritical(Boolean critical) {
+    public void setCritical(int critical) {
         Critical = critical;
     }
 

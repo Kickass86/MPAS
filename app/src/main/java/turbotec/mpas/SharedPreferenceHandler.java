@@ -42,6 +42,15 @@ public class SharedPreferenceHandler {
 
     }
 
+    public void SaveActivation(String Activated) {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(context.getString(R.string.Activation), Activated);
+        editor.apply();
+
+    }
+
 
     public void SaveUserID(String userID) {
 
@@ -53,10 +62,28 @@ public class SharedPreferenceHandler {
     }
 
 
+    public void SaveLoginDetails(String email, String password) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(context.getString(R.string.Username), email);
+        editor.putString(context.getString(R.string.Password), password);
+        editor.apply();
+    }
+
+
+
+
     public String GetUserID() {
 
         SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
         return sharedPref.getString(context.getString(R.string.UID), context.getString(R.string.defaultValue));
+
+    }
+
+    public String GetActivation() {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        return sharedPref.getString(context.getString(R.string.Activation), context.getString(R.string.NotActive));
 
     }
 
@@ -69,14 +96,6 @@ public class SharedPreferenceHandler {
 
     }
 
-
-    public void SaveLoginDetails(String email, String password) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.Username_Password_File), Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(context.getString(R.string.Username), email);
-        editor.putString(context.getString(R.string.Password), password);
-        editor.apply();
-    }
 
     public String GetUsername() {
 

@@ -1,6 +1,12 @@
 package turbotec.mpas;
 
+import android.app.ActivityManager;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -8,6 +14,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.List;
 
 //import android.database.Cursor;
 //import android.database.sqlite.SQLiteDatabase;
@@ -20,18 +27,36 @@ class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
     private final Context MyContext;
     private DatabaseHandler db;
     private SharedPreferenceHandler share;
-    //    private ListView lv;
+    private String Title;
+    private String Content;
+    private int ID;
     private Boolean FLag = false;
 //        private MessageObject MObj;
 
-    public NetworkAsyncTask(Context context, MainActivity activity) {
+    public NetworkAsyncTask(Context context) {
 //        WeakReference<MainActivity> myActivity = new WeakReference<>(activity);
         MyContext = context;
+
+    }
+
+    public boolean isAppForeground(Context mContext) {
+
+        ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+        if (!tasks.isEmpty()) {
+            ComponentName topActivity = tasks.get(0).topActivity;
+            if (!topActivity.getPackageName().equals(mContext.getPackageName())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected void onPreExecute() {
         //display progress dialog.
-        db = MainActivity.db;
+        db = DatabaseHandler.getInstance(MyContext);
+
 //            MObj = new MessageObject();
 //        List<MessageObject> MESSAGES = new ArrayList<>();
         share = SharedPreferenceHandler.getInstance(MyContext);
@@ -42,9 +67,21 @@ class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
 
     protected Boolean doInBackground(Object... userDetails) {
 
+
+//        if(Foreground)
+//        {
+//            Log.e("!!!!","it is in foreground");
+//        }
+//        else
+//        {
+//            Log.e("!!!!","it is not in foreground");
+//        }
         Object username = userDetails[0];
         Object password = userDetails[1];
         Object DeviceID = userDetails[2];
+        android.support.v4.app.NotificationCompat.Builder mBuilder;
+        NotificationManager mNotificationManager =
+                (NotificationManager) MyContext.getSystemService(Context.NOTIFICATION_SERVICE);
 
         Connection conn;
         try {
@@ -64,11 +101,12 @@ class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                 e.printStackTrace();
             }
             conn = DriverManager.getConnection(connString);
-            Log.w("Connection", "open");
+
             Statement stmt1 = conn.createStatement();
+
             ResultSet reset1 = stmt1.executeQuery("Use MIGT_Automation\n" +
                     " SELECT * FROM TbL_Users WHERE " + "Username = '" +
-                    username + "' AND  password = '" + password + "';");
+                    username + "' AND  password = '" + password + "' AND DeviceID = '" + DeviceID + "';");
 //                ResultSet reset = stmt.executeQuery("SELECT * FROM TbL_Users WHERE " + "Username = '" + username +"';");
 
             Statement stmt4 = conn.createStatement();
@@ -77,38 +115,123 @@ class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
             if (b) {
                 Statement stmt2 = conn.createStatement();
                 ResultSet reset2 = stmt2.executeQuery("Use MIGT_Automation\n" +
-                        "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[User ID] = TbL_Users.id \n" +
-                        "Where TbL_Users.id = '" + reset1.getString("id") + "' AND TbL_Users.DeviceID = '" + DeviceID + "';");
+                        "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.UserID = TbL_Users.id \n" +
+                        "Where TbL_Users.id = '" + reset1.getString("id") + "' AND TbL_Users.DeviceID = '" + DeviceID + "' AND TbL_Users.DeviceIDAccepted = 1;");
+
+
 
                 if (reset2.next()) {
                     share.SaveUserID(reset1.getString("id"));
+                    share.SaveActivation(MyContext.getString(R.string.Active));
 
                     Statement stmt3 = conn.createStatement();
                     ResultSet reset3 = stmt3.executeQuery("Use MIGT_Automation\n" +
-                            "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[User ID] = TbL_Users.id \n" +
+                            "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.UserID = TbL_Users.id \n" +
                             "Where TbL_Users.id = '" + reset2.getString("id") + "' AND Messages.Delivered = 0 AND TbL_Users.DeviceID = '" + DeviceID + "';");
+
+                    Log.w("Connection1", "open");
                     if (reset3.next()) {
 //                        int UpdateDeviceID =
+
                         stmt4.executeUpdate("Use MIGT_Automation\n" +
                                 "   update Messages\n" +
                                 "   SET Delivered = 1\n" +
-                                "   WHERE " + "[Message ID] = '" + reset3.getString("Message ID") + "' AND Delivered = 0;");
+                                "   WHERE " + " MessageID = '" + reset3.getString("MessageID") + "' AND Delivered = 0;");
                         //
 //                            MainActivity activity = this.MyActivity.get();
-                        MessageObject MObj = new MessageObject(reset3.getInt("Message ID"), reset3.getString("User ID"),
-                                reset3.getString("Message Title"), reset3.getString("Message Body"), reset3.getDate("Insert Date").toString(), reset3.getInt("Delivered"), reset3.getBoolean("Critical"));
+                        MessageObject MObj = new MessageObject(reset3.getInt("MessageID"), reset3.getString("UserID"),
+                                reset3.getString("MessageTitle"), reset3.getString("MessageBody"), reset3.getDate("InsertDate").toString(), reset3.getInt("Delivered"), reset3.getBoolean("Critical") ? 1 : 0);
+                        Log.w("Connection2", "open");
                         db.addMessage(MObj);
                         Log.i("User valid", "New message added");
+
+                        Title = reset3.getString("MessageTitle");
+                        ID = reset3.getInt("MessageID");
+                        Content = reset3.getString("MessageBody");
+                        b = reset3.getBoolean("Critical");
+
+                        if (b) {
+                            Intent i = new Intent(MyContext, MainActivity.class);
+                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            MyContext.startActivity(i);
+                            mNotificationManager.cancelAll();
+                            return true;
+                        } else {
+                            if (!isAppForeground(MyContext)) {
+
+                                Log.i("Notify", "is running");
+                                Intent nid = new Intent(MyContext, MainActivity.class);
+                                PendingIntent ci = PendingIntent.getActivity(MyContext, 0, nid, 0);
+
+                                mBuilder =
+                                        new android.support.v4.app.NotificationCompat.Builder(MyContext)
+                                                .setSmallIcon(R.mipmap.ic_launcher)
+//                                                .setSmallIcon(MyContext.getResources().getDrawable(R.mipmap.ic_launcher))
+                                                .setContentTitle(Title)
+                                                .setContentIntent(ci)
+                                                .setAutoCancel(true)
+                                                .setDefaults(Notification.DEFAULT_ALL)
+                                                .setVibrate(new long[]{1000, 1000, 1000, 1000, 1000})
+                                                .setContentText(Content);
+
+//                                Intent notificationIntent = new Intent(MyContext, MainActivity.class);
+
+//                                    notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+//                                            | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+
+                                mNotificationManager.notify(ID, mBuilder.build());
+                            }
+                        }
+
                         while (reset3.next()) {
 //                            UpdateDeviceID =
                             stmt4.executeUpdate("Use MIGT_Automation\n" +
                                     "   update Messages\n" +
                                     "   SET Delivered = 1\n" +
-                                    "   WHERE " + "[Message ID] = '" + reset3.getString("Message ID") + "' AND Delivered = 0;");
+                                    "   WHERE " + " MessageID = '" + reset3.getString("MessageID") + "' AND Delivered = 0;");
 
-                            MObj = new MessageObject(reset3.getInt("Message ID"), reset3.getString("User ID"),
-                                    reset3.getString("Message Title"), reset3.getString("Message Body"), reset3.getDate("Insert Date").toString(), reset3.getInt("Delivered"), reset3.getBoolean("Critical"));
+                            MObj = new MessageObject(reset3.getInt("MessageID"), reset3.getString("UserID"),
+                                    reset3.getString("MessageTitle"), reset3.getString("MessageBody"), reset3.getDate("InsertDate").toString(), reset3.getInt("Delivered"), reset3.getBoolean("Critical") ? 1 : 0);
                             db.addMessage(MObj);
+
+                            Title = reset3.getString("MessageTitle");
+                            ID = reset3.getInt("MessageID");
+                            Content = reset3.getString("MessageBody");
+                            b = reset3.getBoolean("Critical");
+                            if (b) {
+                                Intent i = new Intent(MyContext, MainActivity.class);
+                                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                MyContext.startActivity(i);
+                                mNotificationManager.cancelAll();
+                                return true;
+                            } else {
+
+                                if (!isAppForeground(MyContext)) {
+
+                                    Log.i("Notify", "is running");
+                                    Intent nid = new Intent(MyContext, MainActivity.class);
+                                    PendingIntent ci = PendingIntent.getActivity(MyContext, 0, nid, 0);
+
+                                    mBuilder =
+                                            new android.support.v4.app.NotificationCompat.Builder(MyContext)
+                                                    .setSmallIcon(R.mipmap.ic_launcher)
+//                                                    .setSmallIcon(ContextCompat.getDrawable(MyContext, R.mipmap.ic_launcher))
+                                                    .setContentTitle(Title)
+                                                    .setContentIntent(ci)
+                                                    .setAutoCancel(true)
+                                                    .setDefaults(Notification.DEFAULT_ALL)
+                                                    .setVibrate(new long[]{1000, 1000, 1000, 1000, 1000})
+                                                    .setContentText(Content);
+
+                                    mNotificationManager =
+                                            (NotificationManager) MyContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+                                    mNotificationManager.notify(ID, mBuilder.build());
+                                }
+                            }
+
+
                         }
                         FLag = true;
                     } else {
@@ -117,23 +240,33 @@ class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
                         FLag = true;
                     }
                 } else {
-                    if (reset1.getString("DeviceID") == null) {
-                        //First Time Launch
-                        int UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
-                                "   update TbL_Users\n" +
-                                "   SET DeviceID = '" + DeviceID + "'\n" +
-                                "   WHERE " + "Username = '" +
-                                username + "' AND " + " password = '" + password + "';");
-                        if (UpdateDeviceID != 0) {
-                            Log.i("SQL Database", "DeviceID Updated Successfully");
-                            FLag = true;
-                        }
+                    if (reset1.getBoolean("DeviceIDAccepted")) {
+                        share.SaveActivation(MyContext.getString(R.string.Active));
+                    } else {
+                        share.SaveActivation(MyContext.getString(R.string.NotActive));
                     }
+                    FLag = true;
                 }
 
             } else {
-                Log.i("Return false", "User invalid");
-//                return false;
+                Statement stmt5 = conn.createStatement();
+                ResultSet reset5 = stmt5.executeQuery("Use MIGT_Automation\n" +
+                        " SELECT * FROM TbL_Users WHERE " + "Username = '" +
+                        username + "' AND  password = '" + password + "';");
+                reset5.next();
+
+                if (reset5.getString("DeviceID") == null) {
+                    //First Time Launch
+                    int UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
+                            "   update TbL_Users\n" +
+                            "   SET DeviceID = '" + DeviceID + "'\n" +
+                            "   WHERE " + "Username = '" +
+                            username + "' AND " + " password = '" + password + "';");
+                    if (UpdateDeviceID != 0) {
+                        Log.i("SQL Database", "DeviceID Updated Successfully");
+                        FLag = true;
+                    }
+                }
 
             }
 
@@ -144,11 +277,11 @@ class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
 //                return reset.getString("password");
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-            Log.i("Return false", "User invalid");
+            Log.i("Return false1", "User invalid");
 //            return false;
         } catch (Exception e) {
             e.getStackTrace();
-            Log.i("Return false", "User invalid");
+            Log.i("Return false2", "User invalid");
 //            return false;
         }
 
