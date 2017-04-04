@@ -17,8 +17,10 @@ import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -46,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-//            boolean result = false;
+//            boolean Titles = false;
 //            String[] Userdata = new String[]{share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
 //
 //        Application ap = this. getApplication();
@@ -54,14 +56,14 @@ public class MainActivity extends AppCompatActivity {
 //            NetworkAsyncTask task = new NetworkAsyncTask(context, isAppForeground(context));
 //            try {
 //                task.execute(Userdata).get();
-            if (share.GetActivation().equals(getString(R.string.Active))) {
+            if (share.GetStatus().equals(getString(R.string.OK))) {
                 GetMessagesfromDB();
                 ShowMessages();
             }
 //            } catch (ExecutionException | InterruptedException ei) {
 //                ei.printStackTrace();
 //            }
-//            Log.i("is this ","running?");
+            Log.i("is this ", "BroadcastReceiver");
 
         }
     };
@@ -132,12 +134,10 @@ public class MainActivity extends AppCompatActivity {
                     do {
                         MessageObject MObj = new MessageObject();
                         MObj.setMessageID(cursor.getInt(0));
-                        MObj.setUserID(cursor.getString(1));
-                        MObj.setMessageTitle(cursor.getString(2));
-                        MObj.setMessageBody(cursor.getString(3));
-                        MObj.setInsertDate(cursor.getString(4));
-                        MObj.setDelivered(Integer.valueOf(cursor.getString(5)));
-                        MObj.setCritical(cursor.getInt(6));
+                        MObj.setMessageTitle(cursor.getString(1));
+                        MObj.setMessageBody(cursor.getString(2));
+                        MObj.setInsertDate(cursor.getString(3));
+                        MObj.setCritical(Boolean.valueOf(cursor.getString(4)));
 
                         MESSAGES.add(MObj);
                     } while (cursor.moveToNext());
@@ -191,20 +191,21 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
 
 //        registerReceiver(NotifyReceiver, new IntentFilter("Notification fire"));
-        if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
-                && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.Active)))) {
+//        if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
+//                && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.Active)))) {
+        if (share.GetStatus().equals(getString(R.string.OK))) {
             setContentView(R.layout.activity_main_logged_in);
-            boolean result = false;
+//            String result = "OK";
             String[] UserDetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
             NetworkAsyncTask task = new NetworkAsyncTask(this);
             try {
-                result = task.execute(UserDetails).get();
+                task.execute(UserDetails).get();
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
-            if (result) {
+            if (share.GetStatus().equals(getString(R.string.OK))) {
                 //set Repeating Alarm
-                setContentView(R.layout.activity_main_logged_in);
+                setContentView(R.layout.messages_layout);
 
                 Intent alarmIntent = new Intent(this, AlarmReceiver.class);
                 alarmIntent.setAction("Alarm");
@@ -223,10 +224,11 @@ public class MainActivity extends AppCompatActivity {
                     ShowMessages();
                 }
             }
-        } else {
+        }
 
-            if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
-                    && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.NotActive)))) {
+//            if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
+//                    && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.NotActive)))) {
+        else if (share.GetStatus().equals(getString(R.string.Wait))) {
                 setContentView(R.layout.wait_for_activation_layout);
                 Intent alarmIntent = new Intent(this, AlarmReceiver.class);
                 alarmIntent.setAction("Alarm");
@@ -268,6 +270,8 @@ public class MainActivity extends AppCompatActivity {
                         String Username = UsernameView.getText().toString();
                         String Password = PasswordView.getText().toString();
                         String DeviceID = getUniquePsuedoID();
+                        share.SaveLoginDetails(Username, Password);
+                        share.SaveDeviceID(DeviceID);
 
                         attemptLogin(Username, Password, DeviceID);
 //                Log.i("Successful Login ", "Welcome " + Name);
@@ -277,15 +281,15 @@ public class MainActivity extends AppCompatActivity {
 
 //            if ((!userName.equals(getString(R.string.defaultValue))) && ((!passWord.equals(getString(R.string.defaultValue)))) && (!myID.equals(getString(R.string.defaultValue)))) {
 //                setContentView(R.layout.waiting_layout);
-//                boolean result = false;
+//                boolean Titles = false;
 //                String[] UserDetails = {userName, passWord, myID};
 //                NetworkAsyncTask task = new NetworkAsyncTask(this, this);
 //                try {
-//                    result = task.execute(UserDetails).get();
+//                    Titles = task.execute(UserDetails).get();
 //                } catch (ExecutionException | InterruptedException ei) {
 //                    ei.printStackTrace();
 //                }
-//                if (result) {
+//                if (Titles) {
 //                    //set Repeating Alarm
 //                    setContentView(R.layout.activity_main_logged_in);
 //
@@ -329,12 +333,12 @@ public class MainActivity extends AppCompatActivity {
 //
 //            }
 
-        }
+
     }
 
     private void attemptLogin(String username, String password, String DeviceID) {
 
-        boolean result = false;
+        String result = getString(R.string.Invalid);
 
         UsernameView.setError(null);
         PasswordView.setError(null);
@@ -365,15 +369,35 @@ public class MainActivity extends AppCompatActivity {
             String[] Userdata = {username, password, DeviceID};
             NetworkAsyncTask task = new NetworkAsyncTask(this);
             try {
-                result = task.execute(Userdata).get();
+                task.execute(Userdata).get();
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
-            if (result) {
+            if (share.GetStatus().equals(getString(R.string.OK))) {
+                //set Repeating Alarm
+//                setContentView(R.layout.activity_main_logged_in);
+
+                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+                alarmIntent.setAction("Alarm");
+                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+
+                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//                long interval = INTERVAL_FIFTEEN_MINUTES;
+                int interval = 60000;
+
+//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + interval, interval, pendingIntent);
+                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+                Log.i("Alarm", "Set");
+                if (share.GetActivation().equals(getString(R.string.Active))) {
+                    GetMessagesfromDB();
+                    ShowMessages();
+                }
+            } else if (share.GetStatus().equals(getString(R.string.Wait))) {
 
                 share.SaveDeviceID(DeviceID);
                 share.SaveLoginDetails(username, password);
-                share.SaveActivation(getString(R.string.NotActive));
+//                share.SaveActivation(getString(R.string.NotActive));
                 setContentView(R.layout.wait_for_activation_layout);
 
                 Intent alarmIntent = new Intent(this, AlarmReceiver.class);
@@ -385,7 +409,7 @@ public class MainActivity extends AppCompatActivity {
                 int interval = 60000;
 
 //                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + interval, interval, pendingIntent);
                 Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
                 Log.i("Alarm", "Set");
 
@@ -395,8 +419,8 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 //Error On LogIn
                 Log.w("ERROR", "Wrong Information");
-                Toast.makeText(this.getApplicationContext(),
-                        "Wrong Info", Toast.LENGTH_LONG).show();
+//                Toast.makeText(this.getApplicationContext(),
+//                        "Wrong Info", Toast.LENGTH_LONG).show();
                 final Intent intent = getIntent();
                 Thread thread = new Thread() {
                     @Override
@@ -440,295 +464,85 @@ public class MainActivity extends AppCompatActivity {
             TextView emptyText = (TextView) findViewById(android.R.id.empty);
             lv.setEmptyView(emptyText);
         }
-        // This is the array adapter, it takes the context of the activity as a
-        // first parameter, the type of list view as a second parameter and your
-        // array as a third parameter.
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
-                MainActivity.this,
-                android.R.layout.simple_list_item_1,
-                Tlist);
 
-        lv.setAdapter(arrayAdapter);
+
+//        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
+//                MainActivity.this,
+//                android.R.layout.simple_list_item_1,
+//                Tlist);
+
+        lv.setAdapter(new CustomAdapter(this, Tlist, Mlist));
+
+//        lv.setAdapter(arrayAdapter);
 
     }
 
 
-//    public Boolean CheckInternetAvailability() {
-//
-//        ConnectivityManager connectivityManager
-//                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-//        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-//        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-//
-//    }
+    public class CustomAdapter extends BaseAdapter {
+        List<String> Titles;
+        Context context;
+        List<String> Bodies;
+        private LayoutInflater inflater = null;
+
+        public CustomAdapter(MainActivity mainActivity, List<String> MessagesTitle, List<String> MessagesBody) {
+
+            // TODO Auto-generated constructor stub
+            Titles = MessagesTitle;
+            context = mainActivity;
+            Bodies = MessagesBody;
+            inflater = (LayoutInflater) context.
+                    getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        @Override
+        public int getCount() {
+            // TODO Auto-generated method stub
+            return Titles.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            // TODO Auto-generated method stub
+            return position;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            // TODO Auto-generated method stub
+            return position;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            // TODO Auto-generated method stub
+            Holder holder = new Holder();
+            View rowView;
+            rowView = inflater.inflate(R.layout.list_row_layout, null);
+            holder.tv1 = (TextView) rowView.findViewById(R.id.title);
+            holder.tv2 = (TextView) rowView.findViewById(R.id.body);
+            holder.tv1.setText(Titles.get(position));
+            holder.tv2.setText(Bodies.get(position));
+            rowView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // TODO Auto-generated method stub
+                    Toast.makeText(context, "You Clicked " + Titles.get(position), Toast.LENGTH_LONG).show();
+                }
+            });
+            return rowView;
+        }
+
+        private class Holder {
+            TextView tv1;
+            TextView tv2;
+
+        }
+
+    }
 
 
-//    //AlarmReceiver
-//
-//    public static class AlarmReceiver extends BroadcastReceiver {
-//
-//        private SharedPreferenceHandler shareP;
-//        private SharedPreferenceHandler share;
-//        private WeakReference<SharedPreferenceHandler>  sp;
-////    private MainActivity myActivity;
-//        private String[] Userdata;
-//
-//
-//        public AlarmReceiver() {
-//
-//
-//        }
-//
-//
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//
-////        Toast.makeText(context, "Alarm fired now!", Toast.LENGTH_SHORT).show();
-//            Log.v("AAA", "Alarm fired now!");
-//
-//
-//            shareP = SharedPreferenceHandler.getInstance(context);
-////        shareP = myActivity.sp;
-//
-////        this.sp = new WeakReference<SharedPreferenceHandler>(myActivity.sp);
-////        SharedPreferenceHandler sharedp = this.sp.get();
-//            //Check Database
-//
-//            boolean result = false;
-//
-//            Userdata = new String[]{shareP.GetUsername(), shareP.GetPassword(), shareP.GetDeviceID()};
-//
-////        Application ap = this. getApplication();
-//
-//            NetworkAsyncTask task = new NetworkAsyncTask(context, this);
-//            try {
-//                result = task.execute(Userdata).get();
-//            } catch (ExecutionException | InterruptedException ei) {
-//                ei.printStackTrace();
-//            }
-//        }
-//
-//
-//    }
 
 
-//    //Network AsyncTask
-//
-//
-//    public class NetworkAsyncTask extends AsyncTask<Object, Object, Boolean> {
-//
-//        public DatabaseHandler db;
-//
-//        public List<MessageObject> MESSAGES;
-//        public MessageObject MObj;
-////        public SQLiteDatabase database;
-////        private WeakReference<MainActivity> MyActivity;
-//        private ListView lv;
-//        private Boolean FLag = false;
-////        private MessageObject MObj;
-//
-//        public NetworkAsyncTask(Context context) {
-////        this.MyActivity = new WeakReference<MainActivity>(activity);
-//
-//        }
-//
-//        protected void onPreExecute() {
-//            //display progress dialog.
-//            db = MainActivity.db;
-////            MObj = new MessageObject();
-//            MESSAGES = new ArrayList<MessageObject>();
-////             db = datab.getInstance(MainActivity.this);
-////             SQLiteOpenHelper db = datab.getInstance(MainActivity.this);
-//
-//        }
-//
-//        protected Boolean doInBackground(Object... userdetails) {
-//
-//            Object username = userdetails[0];
-//            Object password = userdetails[1];
-//            Object DeviceID = userdetails[2];
-//
-//            Connection conn;
-//            try {
-//                String driver = "net.sourceforge.jtds.jdbc.Driver";
-//
-//
-//                String name = "sa";
-//                String pass = "left4de@d";
-//
-//
-//                String connString = "jdbc:jtds:sqlserver://192.168.1.131:1433/MIGT_Automation;user=" + name + ";password=" + pass + ";";
-//
-//
-//                try {
-//                    Class.forName(driver).newInstance();
-//                } catch (ClassNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-//                conn = DriverManager.getConnection(connString);
-//                Log.w("Connection", "open");
-//                Statement stmt1 = conn.createStatement();
-//                ResultSet reset1 = stmt1.executeQuery("Use MIGT_Automation\n" +
-//                        " SELECT * FROM TbL_Users WHERE " + "Username = '" +
-//                        username + "' AND  password = '" + password + "';");
-////                ResultSet reset = stmt.executeQuery("SELECT * FROM TbL_Users WHERE " + "Username = '" + username +"';");
-//
-//                Statement stmt4 = conn.createStatement();
-//
-//                Boolean b = reset1.next();
-//                if (b) {
-//                    Statement stmt2 = conn.createStatement();
-//                    ResultSet reset2 = stmt2.executeQuery("Use MIGT_Automation\n" +
-//                            "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[UserID] = TbL_Users.id \n" +
-//                            "Where TbL_Users.id = '" + reset1.getString("id") + "' AND TbL_Users.DeviceID = '" + DeviceID + "';");
-//
-//                    if (reset2.next()) {
-//
-//                        Statement stmt3 = conn.createStatement();
-//                        ResultSet reset3 = stmt3.executeQuery("Use MIGT_Automation\n" +
-//                                "SELECT * FROM Messages INNER JOIN TbL_Users  ON Messages.[UserID] = TbL_Users.id \n" +
-//                                "Where TbL_Users.id = '" + reset1.getString("id") + "' AND Messages.Delivered = 0 AND TbL_Users.DeviceID = '" + DeviceID + "';");
-//                        if (reset3.next()) {
-//                            int UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
-//                                    "   update Messages\n" +
-//                                    "   SET Delivered = 1\n" +
-//                                    "   WHERE " + " MessageID = '" + reset2.getString("MessageID") + "' AND Delivered = 0;");
-//                            //
-////                            MainActivity activity = this.MyActivity.get();
-//                            MObj = new MessageObject(reset2.getString("MessageID"), reset2.getString("UserID"),
-//                                    reset2.getString("MessageTitle"), reset2.getString("MessageBody"), reset2.getDate("InsertDate").toString(), reset2.getInt("Delivered"));
-//                            db.addMessage(MObj);
-//                            Log.i("User valid", "New message added");
-//                            while (reset2.next()) {
-//                                UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
-//                                        "   update Messages\n" +
-//                                        "   SET Delivered = 1\n" +
-//                                        "   WHERE " + "MessageID = '" + reset2.getString("MessageID") + "' AND Delivered = 0;");
-//
-//                                MObj = new MessageObject(reset2.getString("MessageID"), reset2.getString("UserID"),
-//                                        reset2.getString("MessageTitle"), reset2.getString("MessageBody"), reset2.getDate("InsertDate").toString(), reset2.getInt("Delivered"));
-//                                db.addMessage(MObj);
-//                            }
-//                            FLag = true;
-//                        } else {
-//                            //No new Message
-//                            Log.i("User valid", "No new message");
-//                            FLag = true;
-//                        }
-//                    } else {
-//                        if (reset1.getString("DeviceID") == null) {
-//                            //First Time Launch
-//                            int UpdateDeviceID = stmt4.executeUpdate("Use MIGT_Automation\n" +
-//                                    "   update TbL_Users\n" +
-//                                    "   SET DeviceID = '" + DeviceID + "'\n" +
-//                                    "   WHERE " + "Username = '" +
-//                                    username + "' AND " + " password = '" + password + "';");
-//                            if (UpdateDeviceID != 0) {
-//                                Log.i("SQL Database", "DeviceID Updated Successfully");
-//                                FLag = true;
-//                            }
-//                        }
-//                    }
-//
-//                } else {
-//                    Log.i("Return false", "User invalid");
-////                return false;
-//
-//                }
-//
-////            return false;
-//
-////                return reset.getString(0);
-////                return (reset.getString("password").equals(password)) ? true: false;
-////                return reset.getString("password");
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//                Log.i("Return false", "User invalid");
-////            return false;
-//            } catch (Exception e) {
-//                e.getStackTrace();
-//                Log.i("Return false", "User invalid");
-////            return false;
-//            }
-//
-//            onPostExecute();
-//            return FLag;
-//        }
-//
-//
-//        void onPostExecute() {
-//            // dismiss progress dialog and update ui
-//            Log.d("SQLite", "Begin to Show");
-//            MainActivity.ShowMessages(MainActivity.GetMessagesfromDB());
-//            ShowMessages(GetMessagesfromDB());
-//
-//        }
-//
-//
-//        public List<MessageObject> GetMessagesfromDB() {
-//
-//
-////        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
-//            SQLiteDatabase database = db.getWritableDatabase();
-//            Cursor cursor = database.rawQuery("SELECT * " +
-//                    "FROM Messages ;", null);
-//
-//            // looping through all rows and adding to list
-//            try {
-//                if (cursor != null) {
-//                    if (cursor.moveToFirst()) {
-//                        do {
-//                            MObj = new MessageObject();
-//                            MObj.setMessageID(cursor.getString(0));
-//                            MObj.setUserID(cursor.getString(1));
-//                            MObj.setMessageTitle(cursor.getString(2));
-//                            MObj.setMessageBody(cursor.getString(3));
-//                            MObj.setInsertDate(cursor.getString(4));
-//                            MObj.setDelivered(Integer.valueOf(cursor.getString(5)));
-//
-//                            MESSAGES.add(MObj);
-//                        } while (cursor.moveToNext());
-//                    }
-//                }
-//            } catch (Exception e) {
-//                e.getStackTrace();
-//            }
-//            return MESSAGES;
-//
-//        }
-//
-//        public void ShowMessages(List<MessageObject> Messages) {
-//
-//            setContentView(R.layout.messages_layout);
-//            lv = (ListView) findViewById(R.id.list1);
-//
-//
-//            List<String> Mlist = new ArrayList<String>(); //Messages List
-//            List<String> Tlist = new ArrayList<String>(); //Title List
-//            List<String> Dlist = new ArrayList<String>(); //Date List
-//
-//            if (Messages != null) {
-//                Mlist.add(Messages.get(0).getMessageBody());
-//                Tlist.add(Messages.get(0).getMessageTitle());
-//                Dlist.add(Messages.get(0).getInsertDate());
-//            }
-//            // This is the array adapter, it takes the context of the activity as a
-//            // first parameter, the type of list view as a second parameter and your
-//            // array as a third parameter.
-//            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-//                    MainActivity.this,
-//                    android.R.layout.simple_list_item_1,
-//                    Tlist);
-//
-//            lv.setAdapter(arrayAdapter);
-//
-//        }
-//
-//
-//
-//
-//
-//    }
 
 
 }
