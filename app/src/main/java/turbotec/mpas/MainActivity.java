@@ -1,11 +1,10 @@
 package turbotec.mpas;
 
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -23,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -138,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
                         MObj.setMessageBody(cursor.getString(2));
                         MObj.setInsertDate(cursor.getString(3));
                         MObj.setCritical(Boolean.valueOf(cursor.getString(4)));
+                        MObj.setSeen("1".equals(cursor.getString(5)));
 
                         MESSAGES.add(MObj);
                     } while (cursor.moveToNext());
@@ -152,19 +153,28 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private boolean isAppForeground(Context mContext) {
-
-        ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
-        if (!tasks.isEmpty()) {
-            ComponentName topActivity = tasks.get(0).topActivity;
-            if (!topActivity.getPackageName().equals(mContext.getPackageName())) {
-                return false;
-            }
+    @Override
+    public void onBackPressed() {
+//        super.onBackPressed();
+        if (share.GetStatus().equals(getString(R.string.OK))) {
+            GetMessagesfromDB();
+            ShowMessages();
         }
-
-        return true;
     }
+
+//    private boolean isAppForeground(Context mContext) {
+//
+//        ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+//        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+//        if (!tasks.isEmpty()) {
+//            ComponentName topActivity = tasks.get(0).topActivity;
+//            if (!topActivity.getPackageName().equals(mContext.getPackageName())) {
+//                return false;
+//            }
+//        }
+//
+//        return true;
+//    }
 
     @Override
     protected void onDestroy() {
@@ -453,11 +463,15 @@ public class MainActivity extends AppCompatActivity {
         List<String> Mlist = new ArrayList<>(); //Messages List
         List<String> Tlist = new ArrayList<>(); //Title List
         List<String> Dlist = new ArrayList<>(); //Date List
+        List<Boolean> SList = new ArrayList<>(); //is Seen
+        List<Integer> IList = new ArrayList<>();
 
         for (int i = Message_Number; i < MESSAGES.size(); i++) {
             Mlist.add(MESSAGES.get(i).getMessageBody());
             Tlist.add(MESSAGES.get(i).getMessageTitle());
             Dlist.add(MESSAGES.get(i).getInsertDate());
+            SList.add(MESSAGES.get(i).isSeen());
+            IList.add(MESSAGES.get(i).getMessageID());
         }
         Message_Number = MESSAGES.size();
         if (MESSAGES.isEmpty()) {
@@ -471,7 +485,7 @@ public class MainActivity extends AppCompatActivity {
 //                android.R.layout.simple_list_item_1,
 //                Tlist);
 
-        lv.setAdapter(new CustomAdapter(this, Tlist, Mlist));
+        lv.setAdapter(new CustomAdapter(this, Tlist, Mlist, SList, IList));
 
 //        lv.setAdapter(arrayAdapter);
 
@@ -480,16 +494,21 @@ public class MainActivity extends AppCompatActivity {
 
     public class CustomAdapter extends BaseAdapter {
         List<String> Titles;
-        Context context;
         List<String> Bodies;
+        List<Boolean> isSeen;
+        List<Integer> IList;
+        Context context;
+
         private LayoutInflater inflater = null;
 
-        public CustomAdapter(MainActivity mainActivity, List<String> MessagesTitle, List<String> MessagesBody) {
+        public CustomAdapter(MainActivity mainActivity, List<String> MessagesTitle, List<String> MessagesBody, List<Boolean> isSeen, List<Integer> IList) {
 
             // TODO Auto-generated constructor stub
-            Titles = MessagesTitle;
             context = mainActivity;
+            Titles = MessagesTitle;
             Bodies = MessagesBody;
+            this.isSeen = isSeen;
+            this.IList = IList;
             inflater = (LayoutInflater) context.
                     getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
@@ -516,17 +535,35 @@ public class MainActivity extends AppCompatActivity {
         public View getView(final int position, View convertView, ViewGroup parent) {
             // TODO Auto-generated method stub
             Holder holder = new Holder();
-            View rowView;
+            final View rowView;
             rowView = inflater.inflate(R.layout.list_row_layout, null);
             holder.tv1 = (TextView) rowView.findViewById(R.id.title);
             holder.tv2 = (TextView) rowView.findViewById(R.id.body);
+            holder.iv = (ImageView) rowView.findViewById(R.id.state);
             holder.tv1.setText(Titles.get(position));
             holder.tv2.setText(Bodies.get(position));
+            if (isSeen.get(position))
+                holder.iv.setImageResource(R.mipmap.seen);
+            else
+                holder.iv.setImageResource(R.mipmap.delivered);
+
             rowView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     // TODO Auto-generated method stub
-                    Toast.makeText(context, "You Clicked " + Titles.get(position), Toast.LENGTH_LONG).show();
+//                    Toast.makeText(context, "You Clicked " + Titles.get(position), Toast.LENGTH_LONG).show();
+                    setContentView(R.layout.messages_preview_layout);
+                    TextView t1 = (TextView) findViewById(R.id.titledetail);
+                    TextView t2 = (TextView) findViewById(R.id.bodydetail);
+                    ImageView i1 = (ImageView) findViewById(R.id.statedetail);
+                    t1.setText(Titles.get(position));
+                    t2.setText(Bodies.get(position));
+                    i1.setImageResource(R.mipmap.seen);
+                    ContentValues values = new ContentValues();
+                    values.put("Seen", true);
+                    SQLiteDatabase database = db.getWritableDatabase();
+                    database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(IList.get(position))});
+                    database.close();
                 }
             });
             return rowView;
@@ -535,6 +572,7 @@ public class MainActivity extends AppCompatActivity {
         private class Holder {
             TextView tv1;
             TextView tv2;
+            ImageView iv;
 
         }
 

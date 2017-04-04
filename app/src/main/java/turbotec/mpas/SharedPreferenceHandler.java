@@ -24,14 +24,7 @@ public class SharedPreferenceHandler {
         return instance;
     }
 
-//    public void SaveID(String newID) {
-//
-//        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPref.edit();
-//        editor.putString(context.getString(R.string.ID), newID);
-//        editor.apply();
-//
-//    }
+
 
     public void SaveDeviceID(String newDeviceID) {
 
@@ -41,6 +34,37 @@ public class SharedPreferenceHandler {
         editor.apply();
 
     }
+
+
+    public void SavePublickey(String pubkey) {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(context.getString(R.string.PublicKey), pubkey);
+        editor.apply();
+
+    }
+
+    public void SavePrivatekey(String privkey) {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(context.getString(R.string.PrivateKey), privkey);
+        editor.apply();
+
+    }
+
+
+    public void SaveToken(String Token) {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(context.getString(R.string.Token), Token);
+        editor.apply();
+
+    }
+
+
 
     public void SaveActivation(String Activated) {
 
@@ -71,6 +95,31 @@ public class SharedPreferenceHandler {
     }
 
 
+    public void SaveStatus(String newDeviceID) {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(context.getString(R.string.Status), newDeviceID);
+        editor.apply();
+
+    }
+
+    public String GetStatus() {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        return sharedPref.getString(context.getString(R.string.Status), context.getString(R.string.defaultValue));
+
+    }
+
+
+    public String GetToken() {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        return sharedPref.getString(context.getString(R.string.Token), context.getString(R.string.defaultValue));
+
+    }
+
+
 
 
     public String GetUserID() {
@@ -95,6 +144,23 @@ public class SharedPreferenceHandler {
         return sharedPref.getString(context.getString(R.string.DeviceID), context.getString(R.string.defaultValue));
 
     }
+
+
+    public String GetPublicKey() {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        return sharedPref.getString(context.getString(R.string.PublicKey), context.getString(R.string.defaultValue));
+
+    }
+
+    public String GetPrivateKey() {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        return sharedPref.getString(context.getString(R.string.PrivateKey), context.getString(R.string.defaultValue));
+
+    }
+
+
 
 
     public String GetUsername() {

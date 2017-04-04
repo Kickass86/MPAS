@@ -4,6 +4,8 @@ package turbotec.mpas;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import java.util.concurrent.ExecutionException;
@@ -26,10 +28,18 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     public AlarmReceiver() {
 
+
 //        this.MyActivity = new WeakReference<MainActivity>(activity);
     }
 
+    public Boolean CheckNetworkAvailability() {
 
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+
+    }
 
 
 
@@ -37,19 +47,21 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
 
 
+        mContext = context;
         share = SharedPreferenceHandler.getInstance(context);
 
 
-        if (intent.getAction().equals("Alarm")) {
-            mContext = context;
+        if (intent.getAction().equals("Alarm") && (CheckNetworkAvailability())) {
+//        if (intent.getAction().equals("Alarm")) {
+
 //            mContext.sendBroadcast(new Intent("Alarm fire"));
 //        Toast.makeText(context, "Alarm fired now!", Toast.LENGTH_SHORT).show();
             Log.v("AAA", "Alarm fired now!");
 
-            final SharedPreferenceHandler share = SharedPreferenceHandler.getInstance(context);
+//            final SharedPreferenceHandler share = SharedPreferenceHandler.getInstance(context);
 //            db = DatabaseHandler.getInstance(context);
 
-            final String[] Userdata = new String[]{share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
+//            final String[] Userdata = new String[]{share.GetUsername(), share.GetPassword(), share.GetDeviceID(), share.GetToken()};
 
 
 //            final AsyncTask task = new AsyncTask<Object, Boolean, Boolean>() {
@@ -218,14 +230,15 @@ public class AlarmReceiver extends BroadcastReceiver {
             try {
 //                b = (Boolean) task.execute(Userdata).get();
                 NetworkAsyncTask task1 = new NetworkAsyncTask(mContext);
-                task1.execute(Userdata).get();
+//                task1.execute(Userdata).get();
+                task1.execute().get();
 
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
 
 
-            mContext.sendBroadcast(new Intent("Alarm fire"));
+//            mContext.sendBroadcast(new Intent("Alarm fire"));
 
 
 //        shareP = myActivity.sp;
@@ -235,7 +248,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             //Check Database
 
 
-//        boolean result = false;
+//        boolean Titles = false;
 //
 //        Userdata = new String[]{shareP.GetUsername(), shareP.GetPassword(), shareP.GetDeviceID()};
 //
@@ -243,7 +256,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 //
 //        NetworkAsyncTask task = new NetworkAsyncTask(context, (MyActivity.get()));
 //        try {
-//            result = task.execute(Userdata).get();
+//            Titles = task.execute(Userdata).get();
 //        } catch (ExecutionException | InterruptedException ei) {
 //            ei.printStackTrace();
 //        }

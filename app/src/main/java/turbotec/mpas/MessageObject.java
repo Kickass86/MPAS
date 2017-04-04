@@ -5,47 +5,47 @@ class MessageObject {
 
 
     private int MessageID;
-    private String UserID;
     private String MessageTitle;
 
 
+    private boolean Seen;
     private String MessageBody;
     private String InsertDate;
-    private int Delivered;
 
 
-    private int Critical;
+    private boolean Critical;
 
-    public MessageObject(int MessageID, String UserID, String MessageTitle, String MessageBody, String InsertDate, int Delivered, int Critical) {
+
+    MessageObject(int MessageID, String MessageTitle, String MessageBody, String InsertDate, boolean Critical) {
         this.MessageID = MessageID;
-        this.UserID = UserID;
         this.MessageTitle = MessageTitle;
         this.MessageBody = MessageBody;
         this.InsertDate = InsertDate;
-        this.Delivered = Delivered;
         this.Critical = Critical;
+        this.Seen = false;
 
     }
 
-    public MessageObject() {
+    MessageObject() {
 
     }
 
-    public int getCritical() {
+    public boolean getCritical() {
         return Critical;
     }
 
-    public void setCritical(int critical) {
+    public void setCritical(boolean critical) {
         Critical = critical;
     }
 
-    public int getDelivered() {
-        return Delivered;
+    public boolean isSeen() {
+        return Seen;
     }
 
-    public void setDelivered(int delivered) {
-        Delivered = delivered;
+    public void setSeen(boolean seen) {
+        Seen = seen;
     }
+
 
     public String getInsertDate() {
         return InsertDate;
@@ -71,13 +71,13 @@ class MessageObject {
         MessageID = messageID;
     }
 
-    public String getUserID() {
-        return UserID;
-    }
-
-    public void setUserID(String userID) {
-        UserID = userID;
-    }
+//    public String getUserID() {
+//        return UserID;
+//    }
+//
+//    public void setUserID(String userID) {
+//        UserID = userID;
+//    }
 
     public String getMessageTitle() {
         return MessageTitle;

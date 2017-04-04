@@ -2,6 +2,7 @@ package turbotec.mpas;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -21,17 +22,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String TABLE_NAME = "Messages";
     // Contacts Table Columns names
     private static final String MESSAGE_ID = "MessageID";
-    private static final String USER_ID = "UserID";
+    //    private static final String USER_ID = "UserID";
     private static final String MESSAGE_Title = "MessageTitle";
     private static final String MESSAGE_BODY = "MessageBody";
     private static final String INSERT_DATE = "InsertDate";
-    private static final String Delivered = "Delivered";
     private static final String Critical = "Critical";
+    private static final String Seen = "Seen";
+    //    private static Context MyContext = null;
     private static DatabaseHandler instance;
 
 
     private DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+//        MyContext = context;
     }
 
     public static DatabaseHandler getInstance(Context mContext) {
@@ -45,9 +48,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         String CREATE_MESSAGES_TABLE = "CREATE TABLE " + TABLE_NAME + "(" +
-                MESSAGE_ID + " INTEGER PRIMARY KEY," + USER_ID + " TEXT," +
+                MESSAGE_ID + " INTEGER PRIMARY KEY," +
                 MESSAGE_Title + " TEXT," + MESSAGE_BODY + " TEXT," + INSERT_DATE +
-                " TEXT," + Delivered + " INTEGER," + Critical + " Boolean)";
+                " TEXT," + Critical + " Boolean," + Seen + " Boolean)";
         db.execSQL(CREATE_MESSAGES_TABLE);
     }
 
@@ -62,21 +65,37 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     }
 
+    public boolean CheckExist(int messageID, Context MyContext) {
+
+        DatabaseHandler d = DatabaseHandler.getInstance(MyContext);
+        SQLiteDatabase db = d.getWritableDatabase();
+        boolean f = false;
+        Cursor cursor = db.rawQuery("SELECT * from Messages WHERE MessageID =" + messageID + ";", null);
+        if (cursor.getCount() > 0)
+            f = true;
+        cursor.close();
+
+        return f;
+
+    }
+
+
     public void addMessage(MessageObject messageObject) {
         SQLiteDatabase db = this.getWritableDatabase();
 
+//        if (CheckExist(messageObject.getMessageID())) {
         ContentValues values = new ContentValues();
         values.put(MESSAGE_ID, messageObject.getMessageID());
-        values.put(USER_ID, messageObject.getUserID());
         values.put(MESSAGE_Title, messageObject.getMessageTitle());
         values.put(MESSAGE_BODY, messageObject.getMessageBody());
         values.put(INSERT_DATE, messageObject.getInsertDate());
-        values.put(Delivered, messageObject.getDelivered());
         values.put(Critical, messageObject.getCritical());
+        values.put(Seen, false);
 
 
         // Inserting Row
         db.insert(TABLE_NAME, null, values);
+//        }
         db.close(); // Closing database connection
     }
 
