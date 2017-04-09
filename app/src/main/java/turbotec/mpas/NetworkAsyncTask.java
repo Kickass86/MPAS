@@ -62,6 +62,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     //        private MessageObject MObj;
     private String Title;
     private String Content;
+    private String IDs = "";
     private boolean returnflag = false;
     private int ID;
     private String FLag = "Invalid";
@@ -673,6 +674,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                     index++;
                     continue;
                 }
+                IDs = IDs + Message.getProperty(0).toString() + ";";
+
 //                temp.setMessageID(Integer.valueOf(Message.getProperty(0).toString()));
 //                temp.setMessageTitle(Message.getProperty(1).toString());
 //                temp.setMessageBody(Message.getProperty(2).toString());
@@ -723,6 +726,43 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             }
 
 
+            String Status = "0";
+            String plaintxt = "value1=" + IDs + ",value2=" + share.GetToken()
+                    + ",value3=" + Status;
+
+
+            plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
+
+            SoapObject requestDel = new SoapObject("http://192.168.1.13/", "Delivered");
+            PropertyInfo Pinf = new PropertyInfo();
+            Pinf.setName("Value");
+            Pinf.setValue(plaintxt);
+            Pinf.setType(String.class);
+            requestDel.addProperty(Pinf);
+
+
+            SoapSerializationEnvelope envelopeDel = new SoapSerializationEnvelope(
+                    SoapEnvelope.VER11);
+            envelopeDel.dotNet = true;
+
+            envelopeDel.setOutputSoapObject(requestDel);
+
+//            HttpTransportSE httpTransport = new HttpTransportSE("http://mpas.migtco.com/Andr/WS.asmx");
+//                HttpTransportSE httpTransport = new HttpTransportSE("http://192.168.1.13/Andr/WS.asmx");
+//                Object response;
+//            httpTransport.call("http://mpas.migtco.com/CheckUser", envelope);
+            httpTransport.call("http://192.168.1.13/Delivered", envelopeDel);
+            response = envelopeDel.getResponse();
+
+
+
+
+
+
+
+
+
+
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -730,6 +770,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
         } catch (Exception exception) {
             exception.printStackTrace();
         }
+
 
         share.SaveStatus(FLag);
 

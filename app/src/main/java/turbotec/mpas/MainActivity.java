@@ -429,8 +429,8 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 //Error On LogIn
                 Log.w("ERROR", "Wrong Information");
-//                Toast.makeText(this.getApplicationContext(),
-//                        "Wrong Info", Toast.LENGTH_LONG).show();
+                Toast.makeText(this.getApplicationContext(),
+                        "Something is wrong, check your connection and username/password", Toast.LENGTH_LONG).show();
                 final Intent intent = getIntent();
                 Thread thread = new Thread() {
                     @Override
@@ -564,6 +564,22 @@ public class MainActivity extends AppCompatActivity {
                     SQLiteDatabase database = db.getWritableDatabase();
                     database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(IList.get(position))});
                     database.close();
+
+
+                    int z = 3;
+                    String[] data = new String[]{z + "", "1", String.valueOf(IList.get(position))};
+
+                    SendStatusAsyncTask taskstate = new SendStatusAsyncTask(context);
+
+                    try {
+                        Object b = taskstate.execute(data).get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+
+
                 }
             });
             return rowView;
