@@ -9,6 +9,8 @@ class MessageObject {
 
 
     private boolean Seen;
+    private boolean SendDelivered;
+    private boolean SendSeen;
     private String MessageBody;
     private String InsertDate;
 
@@ -16,13 +18,15 @@ class MessageObject {
     private boolean Critical;
 
 
-    MessageObject(int MessageID, String MessageTitle, String MessageBody, String InsertDate, boolean Critical) {
+    MessageObject(int MessageID, String MessageTitle, String MessageBody, String InsertDate, boolean Critical, boolean Seen, boolean SendDelivered, boolean SendSeen) {
         this.MessageID = MessageID;
         this.MessageTitle = MessageTitle;
         this.MessageBody = MessageBody;
         this.InsertDate = InsertDate;
         this.Critical = Critical;
-        this.Seen = false;
+        this.Seen = Seen;
+        this.SendDelivered = SendDelivered;
+        this.SendSeen = SendSeen;
 
     }
 

@@ -28,6 +28,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String INSERT_DATE = "InsertDate";
     private static final String Critical = "Critical";
     private static final String Seen = "Seen";
+    private static final String SendSeen = "SendSeen";
+    private static final String SendDelivered = "SendDelivered";
     //    private static Context MyContext = null;
     private static DatabaseHandler instance;
 
@@ -50,7 +52,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String CREATE_MESSAGES_TABLE = "CREATE TABLE " + TABLE_NAME + "(" +
                 MESSAGE_ID + " INTEGER PRIMARY KEY," +
                 MESSAGE_Title + " TEXT," + MESSAGE_BODY + " TEXT," + INSERT_DATE +
-                " TEXT," + Critical + " Boolean," + Seen + " Boolean)";
+                " TEXT," + Critical + " Boolean," + Seen + " Boolean," + SendDelivered + " Boolean," + SendSeen + " Boolean)";
         db.execSQL(CREATE_MESSAGES_TABLE);
     }
 
@@ -80,6 +82,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
 
+    public int unSend(Context MyContext) {
+
+        DatabaseHandler d = DatabaseHandler.getInstance(MyContext);
+        SQLiteDatabase db = d.getWritableDatabase();
+        int f = 0;
+        Cursor cursor = db.rawQuery("SELECT * from Messages WHERE " + SendDelivered + " = '0';", null);
+        if (cursor.getCount() > 0)
+            f = 1;
+        cursor.close();
+
+        cursor = db.rawQuery("SELECT * from Messages WHERE " + SendSeen + " = '0' AND " + Seen + " = '1';", null);
+        if (cursor.getCount() > 0)
+            f = 2;
+        cursor.close();
+
+        return f;
+
+    }
+
+
+
     public void addMessage(MessageObject messageObject) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -91,6 +114,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(INSERT_DATE, messageObject.getInsertDate());
         values.put(Critical, messageObject.getCritical());
         values.put(Seen, false);
+        values.put(SendSeen, false);
+        values.put(SendDelivered, false);
 
 
         // Inserting Row

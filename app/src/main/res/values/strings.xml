@@ -11,6 +11,8 @@
     <string name="PrivateKey">Private Key</string>
     <string name="Active">Active</string>
     <string name="Status">Status</string>
+    <string name="Delivered">Delivered</string>
+    <string name="Seen">Seen</string>
     <string name="OK">OK</string>
     <string name="Wait">Wait</string>
     <string name="Invalid">Invalid</string>

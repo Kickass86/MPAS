@@ -5,8 +5,11 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.support.v4.app.NotificationCompat;
 import android.util.Base64;
@@ -59,6 +62,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     private String encrypted, decrypted;
     private DatabaseHandler db;
     private SharedPreferenceHandler share;
+    private SQLiteDatabase database;
     //        private MessageObject MObj;
     private String Title;
     private String Content;
@@ -655,9 +659,11 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
 
             int index = 0;
+            boolean ff = false;
             while (index < message.getPropertyCount()) {
                 share.SaveActivation(MyContext.getString(R.string.Active));
                 FLag = "OK";
+                ff = true;
                 MessageObject temp;
                 db = DatabaseHandler.getInstance(MyContext);
                 SoapObject Message = (SoapObject) message.getProperty(index);
@@ -668,7 +674,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                         Message.getProperty(1).toString(),
                         Message.getProperty(2).toString(),
                         Message.getProperty(3).toString(),
-                        Boolean.valueOf(Message.getProperty(4).toString())
+                        Boolean.valueOf(Message.getProperty(4).toString()),
+                        false, false, false
                 );
                 if (db.CheckExist(Integer.valueOf(Message.getProperty(0).toString()), MyContext)) {
                     index++;
@@ -725,42 +732,177 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                 index++;
             }
 
+            db = DatabaseHandler.getInstance(MyContext);
 
-            String Status = "0";
-            String plaintxt = "value1=" + IDs + ",value2=" + share.GetToken()
-                    + ",value3=" + Status;
-
-
-            plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
-
-            SoapObject requestDel = new SoapObject("http://192.168.1.13/", "Delivered");
-            PropertyInfo Pinf = new PropertyInfo();
-            Pinf.setName("Value");
-            Pinf.setValue(plaintxt);
-            Pinf.setType(String.class);
-            requestDel.addProperty(Pinf);
+            if (ff) {
+                String Status = "0";
+                String plaintxt = "value1=" + IDs + ",value2=" + share.GetToken()
+                        + ",value3=" + Status;
 
 
-            SoapSerializationEnvelope envelopeDel = new SoapSerializationEnvelope(
-                    SoapEnvelope.VER11);
-            envelopeDel.dotNet = true;
+                plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
 
-            envelopeDel.setOutputSoapObject(requestDel);
-
-//            HttpTransportSE httpTransport = new HttpTransportSE("http://mpas.migtco.com/Andr/WS.asmx");
-//                HttpTransportSE httpTransport = new HttpTransportSE("http://192.168.1.13/Andr/WS.asmx");
-//                Object response;
-//            httpTransport.call("http://mpas.migtco.com/CheckUser", envelope);
-            httpTransport.call("http://192.168.1.13/Delivered", envelopeDel);
-            response = envelopeDel.getResponse();
+                SoapObject requestDel = new SoapObject("http://192.168.1.13/", "Delivered");
+                PropertyInfo Pinf = new PropertyInfo();
+                Pinf.setName("Value");
+                Pinf.setValue(plaintxt);
+                Pinf.setType(String.class);
+                requestDel.addProperty(Pinf);
 
 
+                SoapSerializationEnvelope envelopeDel = new SoapSerializationEnvelope(
+                        SoapEnvelope.VER11);
+                envelopeDel.dotNet = true;
+
+                envelopeDel.setOutputSoapObject(requestDel);
 
 
+                httpTransport.call("http://192.168.1.13/Delivered", envelopeDel);
+                response = envelopeDel.getResponse();
 
 
+                if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
+                    database = db.getWritableDatabase();
+                    ContentValues values = new ContentValues();
+                    values.put("SendDelivered", true);
+                    String[] MIDs = IDs.split(";");
+                    for (int i = 0; i < MIDs.length; i++) {
+                        database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
+                    }
+                    database.close();
+                } else if (response.toString().contains(MyContext.getString(R.string.Seen))) {
+                    database = db.getWritableDatabase();
+                    ContentValues values = new ContentValues();
+                    values.put("SendSeen", true);
+                    values.put("SendDelivered", true);
+                    String[] MIDs = IDs.split(";");
+                    for (int i = 0; i < MIDs.length; i++) {
+                        database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
+                    }
+                    database.close();
+                }
 
 
+            }
+
+
+            if (db.unSend(MyContext) == 1) {
+//                DatabaseHandler d = DatabaseHandler.getInstance(MyContext);
+                SQLiteDatabase d = db.getWritableDatabase();
+                int f = 0;
+                IDs = "";
+                Cursor cursor = d.rawQuery("SELECT * from Messages WHERE SendDelivered = False;", null);
+                try {
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            do {
+                                IDs = IDs + cursor.getInt(0) + ";";
+
+                            } while (cursor.moveToNext());
+                        }
+                        cursor.close();
+                    }
+
+                } catch (Exception e) {
+                    e.getStackTrace();
+                }
+
+
+                String Status = "0";
+                String plaintxt = "value1=" + IDs + ",value2=" + share.GetToken()
+                        + ",value3=" + Status;
+
+
+                plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
+
+                SoapObject requestDel = new SoapObject("http://192.168.1.13/", "Delivered");
+                PropertyInfo Pinf = new PropertyInfo();
+                Pinf.setName("Value");
+                Pinf.setValue(plaintxt);
+                Pinf.setType(String.class);
+                requestDel.addProperty(Pinf);
+
+
+                SoapSerializationEnvelope envelopeDel = new SoapSerializationEnvelope(
+                        SoapEnvelope.VER11);
+                envelopeDel.dotNet = true;
+
+                envelopeDel.setOutputSoapObject(requestDel);
+
+
+                httpTransport.call("http://192.168.1.13/Delivered", envelopeDel);
+                response = envelopeDel.getResponse();
+
+
+                if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
+                    database = db.getWritableDatabase();
+                    ContentValues values = new ContentValues();
+                    values.put("SendDelivered", true);
+                    String[] MIDs = IDs.split(";");
+                    for (int i = 0; i < MIDs.length; i++) {
+                        database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
+                    }
+                    database.close();
+                }
+            } else if (db.unSend(MyContext) == 2) {
+//                DatabaseHandler d = DatabaseHandler.getInstance(MyContext);
+                SQLiteDatabase d = db.getWritableDatabase();
+                int f = 0;
+                IDs = "";
+                Cursor cursor = d.rawQuery("SELECT * from Messages WHERE SendDelivered = False;", null);
+                try {
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            do {
+                                IDs = IDs + cursor.getInt(0) + ";";
+
+                            } while (cursor.moveToNext());
+                        }
+                        cursor.close();
+                    }
+
+                } catch (Exception e) {
+                    e.getStackTrace();
+                }
+
+
+                String Status = "1";
+                String plaintxt = "value1=" + IDs + ",value2=" + share.GetToken()
+                        + ",value3=" + Status;
+
+
+                plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
+
+                SoapObject requestDel = new SoapObject("http://192.168.1.13/", "Delivered");
+                PropertyInfo Pinf = new PropertyInfo();
+                Pinf.setName("Value");
+                Pinf.setValue(plaintxt);
+                Pinf.setType(String.class);
+                requestDel.addProperty(Pinf);
+
+
+                SoapSerializationEnvelope envelopeDel = new SoapSerializationEnvelope(
+                        SoapEnvelope.VER11);
+                envelopeDel.dotNet = true;
+
+                envelopeDel.setOutputSoapObject(requestDel);
+
+
+                httpTransport.call("http://192.168.1.13/Delivered", envelopeDel);
+                response = envelopeDel.getResponse();
+
+
+                if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
+                    database = db.getWritableDatabase();
+                    ContentValues values = new ContentValues();
+                    values.put("SendDelivered", true);
+                    String[] MIDs = IDs.split(";");
+                    for (int i = 0; i < MIDs.length; i++) {
+                        database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
+                    }
+                    database.close();
+                }
+            }
 
 
         } catch (MalformedURLException e) {
