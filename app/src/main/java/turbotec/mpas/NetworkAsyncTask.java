@@ -63,6 +63,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     private DatabaseHandler db;
     private SharedPreferenceHandler share;
     private SQLiteDatabase database;
+    private String[] MIDs;
     //        private MessageObject MObj;
     private String Title;
     private String Content;
@@ -682,6 +683,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                     continue;
                 }
                 IDs = IDs + Message.getProperty(0).toString() + ";";
+                MIDs[index] = Message.getProperty(0).toString();
 
 //                temp.setMessageID(Integer.valueOf(Message.getProperty(0).toString()));
 //                temp.setMessageTitle(Message.getProperty(1).toString());
@@ -759,6 +761,19 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
                 httpTransport.call("http://192.168.1.13/Delivered", envelopeDel);
                 response = envelopeDel.getResponse();
+
+//                int z = 3;
+//                String[] data = MIDs;
+//
+//                SendStatusAsyncTask taskstate = new SendStatusAsyncTask(MyContext);
+//
+//                try {
+//                    Object b = taskstate.execute(data).get();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                } catch (ExecutionException e) {
+//                    e.printStackTrace();
+//                }
 
 
                 if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
@@ -914,7 +929,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
         }
 
 
-        share.SaveStatus(FLag);
+        if ((FLag.equals(MyContext.getString(R.string.OK))) | (FLag.equals(MyContext.getString(R.string.Wait))))
+            share.SaveStatus(FLag);
 
         return FLag;
     }
