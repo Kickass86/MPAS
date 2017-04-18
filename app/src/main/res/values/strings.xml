@@ -13,6 +13,9 @@
     <string name="Status">Status</string>
     <string name="Delivered">Delivered</string>
     <string name="Seen">Seen</string>
+    <string name="Title">Title</string>
+    <string name="Body">Body</string>
+    <string name="Critical">Critical</string>
     <string name="OK">OK</string>
     <string name="Wait">Wait</string>
     <string name="Invalid">Invalid</string>
@@ -29,4 +32,5 @@
 
 
     <string name="Welcome">Welcome, You successfully logged in</string>
+    <string name="title_activity_message__detail_">Message_Detail_Activity</string>
 </resources>

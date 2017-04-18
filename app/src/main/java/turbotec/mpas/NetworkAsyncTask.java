@@ -27,7 +27,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -53,6 +56,8 @@ import javax.crypto.NoSuchPaddingException;
 class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
     private final Context MyContext;
+    private final String ip = "192.168.1.13";
+    private final int port = 80;
     private KeyPairGenerator kpg;
     private KeyPair kp;
     private PublicKey publicKey;
@@ -63,7 +68,17 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     private DatabaseHandler db;
     private SharedPreferenceHandler share;
     private SQLiteDatabase database;
-    private String[] MIDs;
+    private String[] MIDs = new String[10000];
+    private String SOAP_ACTION_CHECK;
+    private String SOAP_ACTION_DELIVERED;
+    private String OPERATION_NAME_CHECK;
+    private String OPERATION_NAME_DELIVERED;
+    //    private  final String SOAP_ACTION = "http://192.168.1.13/Delivered";
+//    private  final String OPERATION_NAME = "Delivered";
+//    private  final String WSDL_TARGET_NAMESPACE = "http://192.168.1.13/";
+//    private  final String SOAP_ADDRESS = "http://192.168.1.13/Andr/WS.asmx";
+    private String WSDL_TARGET_NAMESPACE;
+    private String SOAP_ADDRESS;
     //        private MessageObject MObj;
     private String Title;
     private String Content;
@@ -79,6 +94,32 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
         MyContext = context;
 //        char[] encryptedchar = null; for(int i = 0; i < encryptedBytes.length; i++) {     encryptedchar[i] = (char) (encryptedBytes[i] & 0xFF);      }
     }
+
+    private boolean isLocalReachable() {
+
+        boolean exists = false;
+
+        try {
+            SocketAddress sockaddr = new InetSocketAddress(ip, port);
+            // Create an unbound socket
+            Socket sock = new Socket();
+
+            // This method will block no more than timeoutMs.
+            // If the timeout occurs, SocketTimeoutException is thrown.
+            int timeoutMs = 2000;   // 2 seconds
+            sock.connect(sockaddr, timeoutMs);
+            exists = true;
+
+            sock.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return exists;
+    }
+
+
 
     private byte[] Encrypt(String raw) throws Exception {
 
@@ -231,6 +272,9 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 //            MObj = new MessageObject();
 //        List<MessageObject> MESSAGES = new ArrayList<>();
         share = SharedPreferenceHandler.getInstance(MyContext);
+
+        OPERATION_NAME_CHECK = "CheckUser";
+        OPERATION_NAME_DELIVERED = "Delivered";
 
 //        String ur = "";
 //        String plaintext = "value1=Esmati,value2=Aa@123,value3=992742-35dsew-32213gbd,value4=";
@@ -555,6 +599,19 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     protected String doInBackground(Object... params) {
 
 
+        if (isLocalReachable()) {
+            SOAP_ACTION_CHECK = "http://192.168.1.13/CheckUser";
+            SOAP_ACTION_DELIVERED = "http://192.168.1.13/Delivered";
+            WSDL_TARGET_NAMESPACE = "http://192.168.1.13/";
+            SOAP_ADDRESS = "http://192.168.1.13/Andr/WS.asmx";
+        } else {
+            SOAP_ACTION_CHECK = "http://mpas.migtco.com/CheckUser";
+            SOAP_ACTION_DELIVERED = "http://mpas.migtco.com/Delivered";
+            WSDL_TARGET_NAMESPACE = "http://mpas.migtco.com/";
+            SOAP_ADDRESS = "http://mpas.migtco.com/Andr/WS.asmx";
+        }
+
+
         String username = share.GetUsername();
         String password = share.GetPassword();
         String DeviceID = share.GetDeviceID();
@@ -596,7 +653,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
             plaintext = new String(Base64.encode(plaintext.getBytes(), Base64.DEFAULT));
 //            SoapObject request = new SoapObject("http://mpas.migtco.com/", "CheckUser");
-            SoapObject request = new SoapObject("http://192.168.1.13/", "CheckUser");
+            SoapObject request = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_CHECK);
             PropertyInfo pi = new PropertyInfo();
             pi.setName("Value");
             pi.setValue(plaintext);
@@ -611,11 +668,11 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             envelope.setOutputSoapObject(request);
 
 //            HttpTransportSE httpTransport = new HttpTransportSE("http://mpas.migtco.com/Andr/WS.asmx");
-            HttpTransportSE httpTransport = new HttpTransportSE("http://192.168.1.13/Andr/WS.asmx");
+            HttpTransportSE httpTransport = new HttpTransportSE(SOAP_ADDRESS);
 //            Object response = null;
             Object response;
 //            httpTransport.call("http://mpas.migtco.com/CheckUser", envelope);
-            httpTransport.call("http://192.168.1.13/CheckUser", envelope);
+            httpTransport.call(SOAP_ACTION_CHECK, envelope);
             response = envelope.getResponse();
 
 
@@ -628,7 +685,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             String Authresp = "";
             String Tokenresp = "";
 //            SoapObject Messagesresp = new SoapObject("http://mpas.migtco.com/", "CheckUser");
-            SoapObject Messagesresp = new SoapObject("http://192.168.1.13/", "CheckUser");
+            SoapObject Messagesresp = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_CHECK);
 
             if (auth.getPropertyCount() > 0)
                 Authresp = auth.getProperty(0).toString();
@@ -664,7 +721,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             while (index < message.getPropertyCount()) {
                 share.SaveActivation(MyContext.getString(R.string.Active));
                 FLag = "OK";
-                ff = true;
+
                 MessageObject temp;
                 db = DatabaseHandler.getInstance(MyContext);
                 SoapObject Message = (SoapObject) message.getProperty(index);
@@ -682,6 +739,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                     index++;
                     continue;
                 }
+                ff = true;
                 IDs = IDs + Message.getProperty(0).toString() + ";";
                 MIDs[index] = Message.getProperty(0).toString();
 
@@ -744,7 +802,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
                 plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
 
-                SoapObject requestDel = new SoapObject("http://192.168.1.13/", "Delivered");
+                SoapObject requestDel = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
                 PropertyInfo Pinf = new PropertyInfo();
                 Pinf.setName("Value");
                 Pinf.setValue(plaintxt);
@@ -759,7 +817,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                 envelopeDel.setOutputSoapObject(requestDel);
 
 
-                httpTransport.call("http://192.168.1.13/Delivered", envelopeDel);
+                httpTransport.call(SOAP_ACTION_DELIVERED, envelopeDel);
                 response = envelopeDel.getResponse();
 
 //                int z = 3;
@@ -806,7 +864,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                 SQLiteDatabase d = db.getWritableDatabase();
                 int f = 0;
                 IDs = "";
-                Cursor cursor = d.rawQuery("SELECT * from Messages WHERE SendDelivered = False;", null);
+                Cursor cursor = d.rawQuery("SELECT * from Messages WHERE SendDelivered = '0';", null);
                 try {
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
@@ -830,7 +888,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
                 plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
 
-                SoapObject requestDel = new SoapObject("http://192.168.1.13/", "Delivered");
+                SoapObject requestDel = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
                 PropertyInfo Pinf = new PropertyInfo();
                 Pinf.setName("Value");
                 Pinf.setValue(plaintxt);
@@ -845,7 +903,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                 envelopeDel.setOutputSoapObject(requestDel);
 
 
-                httpTransport.call("http://192.168.1.13/Delivered", envelopeDel);
+                httpTransport.call(SOAP_ACTION_DELIVERED, envelopeDel);
                 response = envelopeDel.getResponse();
 
 
@@ -864,7 +922,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                 SQLiteDatabase d = db.getWritableDatabase();
                 int f = 0;
                 IDs = "";
-                Cursor cursor = d.rawQuery("SELECT * from Messages WHERE SendDelivered = False;", null);
+                Cursor cursor = d.rawQuery("SELECT * from Messages WHERE SendDelivered = '0';", null);
                 try {
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
@@ -888,7 +946,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
                 plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
 
-                SoapObject requestDel = new SoapObject("http://192.168.1.13/", "Delivered");
+                SoapObject requestDel = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
                 PropertyInfo Pinf = new PropertyInfo();
                 Pinf.setName("Value");
                 Pinf.setValue(plaintxt);
@@ -903,7 +961,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                 envelopeDel.setOutputSoapObject(requestDel);
 
 
-                httpTransport.call("http://192.168.1.13/Delivered", envelopeDel);
+                httpTransport.call(SOAP_ACTION_DELIVERED, envelopeDel);
                 response = envelopeDel.getResponse();
 
 

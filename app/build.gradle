@@ -16,14 +16,19 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            debuggable true
+        }
     }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:25.1.0'
-    compile 'com.android.support.constraint:constraint-layout:1.0.0-beta5'
     compile files('libs/jtds-1.2.5.jar')
     compile files('libs/ksoap2-android-assembly-2.4-jar-with-dependencies.jar')
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.google.android.gms:play-services-appindexing:9.8.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:design:25.1.0'
+    testCompile 'junit:junit:4.12'
 }
