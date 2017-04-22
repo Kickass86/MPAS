@@ -29,7 +29,8 @@
     <string name="Register">Register</string>
     <string name="error_invalid_password">Error! Password is empty.</string>
     <string name="error_field_required">Error! Username is empty.</string>
-
+    <string name="dialog_message">Are you sure?</string>
+    <string name="dialog_title">Delete</string>
 
     <string name="Welcome">Welcome, You successfully logged in</string>
     <string name="title_activity_message__detail_">Message_Detail_Activity</string>

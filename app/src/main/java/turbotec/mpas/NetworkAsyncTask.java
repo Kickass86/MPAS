@@ -10,7 +10,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.util.Base64;
 import android.util.Log;
@@ -73,6 +77,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     private String SOAP_ACTION_DELIVERED;
     private String OPERATION_NAME_CHECK;
     private String OPERATION_NAME_DELIVERED;
+
+    private boolean isCritical = false;
     //    private  final String SOAP_ACTION = "http://192.168.1.13/Delivered";
 //    private  final String OPERATION_NAME = "Delivered";
 //    private  final String WSDL_TARGET_NAMESPACE = "http://192.168.1.13/";
@@ -749,15 +755,50 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 //                temp.setInsertDate(Message.getProperty(3).toString());
 //                temp.setCritical(Boolean.valueOf(Message.getProperty(4).toString()));
 
-                boolean b = Boolean.valueOf(Message.getProperty(4).toString());
+                isCritical = Boolean.valueOf(Message.getProperty(4).toString());
 
 
-                if (b) {
-                    Intent i = new Intent(MyContext, MainActivity.class);
-                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    MyContext.startActivity(i);
-                    mNotificationManager.cancelAll();
-                    return FLag;
+                if (isCritical) {
+//                    Intent i = new Intent(MyContext, MainActivity.class);
+//                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    MyContext.startActivity(i);
+//                    mNotificationManager.cancelAll();
+//                    if ((FLag.equals(MyContext.getString(R.string.OK))) | (FLag.equals(MyContext.getString(R.string.Wait))))
+//                        share.SaveStatus(FLag);
+//                    return FLag;
+                    Log.i("Notify", "is running");
+//                    Intent nid = new Intent(MyContext, MainActivity.class);
+//                    PendingIntent ci = PendingIntent.getActivity(MyContext, 0, nid, 0);
+//
+//                    mBuilder =
+//                            new android.support.v4.app.NotificationCompat.Builder(MyContext)
+//                                    .setSmallIcon(R.mipmap.ic_launcher)
+////                                                .setSmallIcon(MyContext.getResources().getDrawable(R.mipmap.ic_launcher))
+//                                    .setContentTitle(temp.getMessageTitle())
+//                                    .setContentIntent(ci)
+//                                    .setAutoCancel(true)
+//                                    .setDefaults(Notification.DEFAULT_ALL)
+//                                    .setVibrate(new long[]{1000, 1000, 1000, 1000, 1000})
+//                                    .setContentText(temp.getMessageBody());
+//
+////                                Intent notificationIntent = new Intent(MyContext, MainActivity.class);
+//
+////                                    notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+////                                            | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//
+//
+//                    mNotificationManager.notify(temp.getMessageID(), mBuilder.build());
+
+                    long[] pattern = {1000, 1000, 1000, 1000, 1000};
+                    Vibrator vibrator = (Vibrator) MyContext.getSystemService(Context.VIBRATOR_SERVICE);
+                    vibrator.vibrate(pattern, -1);
+                    try {
+                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        Ringtone r = RingtoneManager.getRingtone(MyContext, notification);
+                        r.play();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
                 } else {
                     if (!isAppForeground(MyContext)) {
@@ -989,6 +1030,17 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
         if ((FLag.equals(MyContext.getString(R.string.OK))) | (FLag.equals(MyContext.getString(R.string.Wait))))
             share.SaveStatus(FLag);
+
+        if ((isCritical) & (!isAppForeground(MyContext))) {
+            Intent i = new Intent(MyContext, MainActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            MyContext.startActivity(i);
+            mNotificationManager.cancelAll();
+//            if ((FLag.equals(MyContext.getString(R.string.OK))) | (FLag.equals(MyContext.getString(R.string.Wait))))
+//                share.SaveStatus(FLag);
+            return FLag;
+
+        }
 
         return FLag;
     }

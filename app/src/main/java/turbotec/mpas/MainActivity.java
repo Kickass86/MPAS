@@ -38,6 +38,7 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity {
 
     public static DatabaseHandler db;
+    private static int numrun = 0;
     private static List<MessageObject> MESSAGES;
     //    public static SQLiteDatabase database;
     private int Message_Number = 0;
@@ -93,6 +94,15 @@ public class MainActivity extends AppCompatActivity {
     private EditText PasswordView;
 
 
+    public MainActivity() {
+
+        MESSAGES = new ArrayList<>();
+        db = DatabaseHandler.getInstance(this);
+        share = SharedPreferenceHandler.getInstance(this);
+
+    }
+    //    private String Name;
+
     @SuppressWarnings("deprecation")
     private static String getUniquePsuedoID() {
 
@@ -115,51 +125,6 @@ public class MainActivity extends AppCompatActivity {
             serial = "serial"; // some value
         }
         return new UUID(m_szDevIDShort.hashCode(), serial.hashCode()).toString();
-    }
-    //    private String Name;
-
-    private static void GetMessagesfromDB() {
-
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-
-
-//        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
-        SQLiteDatabase database = db.getWritableDatabase();
-        Cursor cursor = database.rawQuery("SELECT * " +
-                "FROM Messages ORDER BY MessageID DESC;", null);
-
-        // looping through all rows and adding to list
-        try {
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    do {
-                        MessageObject MObj = new MessageObject();
-                        MObj.setMessageID(cursor.getInt(0));
-                        MObj.setMessageTitle(cursor.getString(1));
-                        MObj.setMessageBody(cursor.getString(2));
-                        MObj.setInsertDate(cursor.getString(3));
-                        MObj.setCritical(Boolean.valueOf(cursor.getString(4)));
-                        MObj.setSeen("1".equals(cursor.getString(5)));
-
-                        MESSAGES.add(MObj);
-                    } while (cursor.moveToNext());
-                }
-                cursor.close();
-            }
-
-//                    } catch (Exception e) {
-//                        e.getStackTrace();
-//                    }
-        } catch (Exception e) {
-            e.printStackTrace();
-                }
-//            }
-//        }).start();
-
-
     }
 
 
@@ -186,6 +151,50 @@ public class MainActivity extends AppCompatActivity {
 //        return true;
 //    }
 
+    private static void GetMessagesfromDB() {
+
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+
+
+//        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
+        MESSAGES = new ArrayList<>();
+        SQLiteDatabase database = db.getWritableDatabase();
+        Cursor cursor = database.rawQuery("SELECT * " +
+                "FROM Messages ORDER BY Critical DESC, MessageID DESC;", null);
+
+        // looping through all rows and adding to list
+        try {
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        MessageObject MObj = new MessageObject();
+                        MObj.setMessageID(cursor.getInt(0));
+                        MObj.setMessageTitle(cursor.getString(1));
+                        MObj.setMessageBody(cursor.getString(2));
+                        MObj.setInsertDate(cursor.getString(3));
+                        MObj.setCritical("1".equals(cursor.getString(4)));
+                        MObj.setSeen("1".equals(cursor.getString(5)));
+
+                        MESSAGES.add(MObj);
+                    } while (cursor.moveToNext());
+                }
+                cursor.close();
+            }
+
+//                    } catch (Exception e) {
+//                        e.getStackTrace();
+//                    }
+        } catch (Exception e) {
+            e.printStackTrace();
+                }
+//            }
+//        }).start();
+
+
+    }
 
     @Override
     protected void onDestroy() {
@@ -194,13 +203,15 @@ public class MainActivity extends AppCompatActivity {
 //        unregisterReceiver(NotifyReceiver);
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
-        setContentView(R.layout.messages_layout);
         NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         nMgr.cancelAll();
+        if (share.GetStatus().equals(getString(R.string.OK))) {
+            GetMessagesfromDB();
+            ShowMessages();
+        }
     }
 
     /**
@@ -209,17 +220,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        MESSAGES = new ArrayList<>();
+//        db = DatabaseHandler.getInstance(this);
+//        share = SharedPreferenceHandler.getInstance(this);
 
-        MESSAGES = new ArrayList<>();
-        db = DatabaseHandler.getInstance(this);
-        share = SharedPreferenceHandler.getInstance(this);
+        setContentView(R.layout.waiting_layout);
         registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
 
 //        registerReceiver(NotifyReceiver, new IntentFilter("Notification fire"));
 //        if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
 //                && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.Active)))) {
+        String state = share.GetStatus();
 
-        if (share.GetStatus().equals(getString(R.string.OK))) {
+        if (state.equals(getString(R.string.OK))) {
             setContentView(R.layout.activity_main_logged_in);
 //            String result = "OK";
             String[] UserDetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
@@ -254,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
 //            if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
 //                    && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.NotActive)))) {
-        else if (share.GetStatus().equals(getString(R.string.Wait))) {
+        else if (state.equals(getString(R.string.Wait))) {
             setContentView(R.layout.wait_for_activation_layout);
             Intent alarmIntent = new Intent(this, AlarmReceiver.class);
             alarmIntent.setAction("Alarm");
@@ -489,7 +502,8 @@ public class MainActivity extends AppCompatActivity {
         List<Integer> IList = new ArrayList<>();
         List<Boolean> CList = new ArrayList<>();
 
-        for (int i = Message_Number; i < MESSAGES.size(); i++) {
+//        for (int i = Message_Number; i < MESSAGES.size(); i++) {
+        for (int i = 0; i < MESSAGES.size(); i++) {
             Mlist.add(MESSAGES.get(i).getMessageBody());
             Tlist.add(MESSAGES.get(i).getMessageTitle());
             Dlist.add(MESSAGES.get(i).getInsertDate());
@@ -498,10 +512,10 @@ public class MainActivity extends AppCompatActivity {
             CList.add(MESSAGES.get(i).getCritical());
         }
         Message_Number = MESSAGES.size();
-        if (MESSAGES.isEmpty()) {
+//        if (MESSAGES.isEmpty()) {
             TextView emptyText = (TextView) findViewById(android.R.id.empty);
             lv.setEmptyView(emptyText);
-        }
+//        }
 
 
 //        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
@@ -566,12 +580,17 @@ public class MainActivity extends AppCompatActivity {
             holder.tv1 = (TextView) rowView.findViewById(R.id.title);
             holder.tv2 = (TextView) rowView.findViewById(R.id.body);
             holder.iv = (ImageView) rowView.findViewById(R.id.state);
+            holder.i2 = (ImageView) rowView.findViewById(R.id.Critical);
             holder.tv1.setText(Titles.get(position));
             holder.tv2.setText(Bodies.get(position));
             if (isSeen.get(position))
                 holder.iv.setImageResource(R.mipmap.seen);
             else
                 holder.iv.setImageResource(R.mipmap.delivered);
+
+            if (CList.get(position)) {
+                holder.i2.setImageResource(R.mipmap.critical);
+            }
 
             rowView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -629,6 +648,7 @@ public class MainActivity extends AppCompatActivity {
             TextView tv1;
             TextView tv2;
             ImageView iv;
+            ImageView i2;
 
         }
 

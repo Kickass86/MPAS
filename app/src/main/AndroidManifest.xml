@@ -38,8 +38,7 @@
 
         <activity
             android:name=".Message_Detail_Activity"
-            android:label="@string/title_activity_message__detail_"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:label="@string/title_activity_message__detail_"></activity>
     </application>
 
 </manifest>
