@@ -13,6 +13,7 @@
     <string name="Status">Status</string>
     <string name="Delivered">Delivered</string>
     <string name="Seen">Seen</string>
+    <string name="SendSeen">SendSeen</string>
     <string name="Title">Title</string>
     <string name="Body">Body</string>
     <string name="Critical">Critical</string>

@@ -34,6 +34,10 @@ class MessageObject {
 
     }
 
+    public boolean isSendSeen() {
+        return SendSeen;
+    }
+
     public boolean getCritical() {
         return Critical;
     }

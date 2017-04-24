@@ -1,12 +1,10 @@
 package turbotec.mpas;
 
 import android.app.AlarmManager;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
@@ -199,19 +197,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(broadcastReceiver);
+//        unregisterReceiver(broadcastReceiver);
 //        unregisterReceiver(NotifyReceiver);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        nMgr.cancelAll();
-        if (share.GetStatus().equals(getString(R.string.OK))) {
-            GetMessagesfromDB();
-            ShowMessages();
-        }
+//        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//        nMgr.cancelAll();
+//        if (share.GetStatus().equals(getString(R.string.OK))) {
+//            GetMessagesfromDB();
+//            ShowMessages();
+//        }
     }
 
     /**
@@ -220,16 +218,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        MESSAGES = new ArrayList<>();
-//        db = DatabaseHandler.getInstance(this);
-//        share = SharedPreferenceHandler.getInstance(this);
 
-        setContentView(R.layout.waiting_layout);
-        registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
-
-//        registerReceiver(NotifyReceiver, new IntentFilter("Notification fire"));
-//        if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
-//                && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.Active)))) {
         String state = share.GetStatus();
 
         if (state.equals(getString(R.string.OK))) {
@@ -286,16 +275,8 @@ public class MainActivity extends AppCompatActivity {
                 ShowMessages();
             }
         } else {
-            setContentView(R.layout.activity_main);
-//        database = t.getReadableDatabase();
+            setContentView(R.layout.login_layout);
 
-//        AlarmReceiver AR = new AlarmReceiver();
-//        registerReceiver(AR,);
-
-
-//            String userName = share.GetUsername();
-//            String passWord = share.GetPassword();
-//            String myID = share.GetDeviceID();
 
             new Thread(new Runnable() {
                 @Override
@@ -324,59 +305,7 @@ public class MainActivity extends AppCompatActivity {
             }).start();
         }
 
-//            if ((!userName.equals(getString(R.string.defaultValue))) && ((!passWord.equals(getString(R.string.defaultValue)))) && (!myID.equals(getString(R.string.defaultValue)))) {
-//                setContentView(R.layout.waiting_layout);
-//                boolean Titles = false;
-//                String[] UserDetails = {userName, passWord, myID};
-//                NetworkAsyncTask task = new NetworkAsyncTask(this, this);
-//                try {
-//                    Titles = task.execute(UserDetails).get();
-//                } catch (ExecutionException | InterruptedException ei) {
-//                    ei.printStackTrace();
-//                }
-//                if (Titles) {
-//                    //set Repeating Alarm
-//                    setContentView(R.layout.activity_main_logged_in);
-//
-//                    Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-//                    alarmIntent.setAction("Alarm");
-//                    pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
-//
-//                    AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-////                long interval = INTERVAL_FIFTEEN_MINUTES;
-//                    int interval = 60000;
-//
-////                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-//                    manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
-//                    Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
-//                    Log.i("Alarm", "Set");
-//                    GetMessagesfromDB();
-//                    ShowMessages();
-//
-////                ShowMessages(GetMessagesfromDB());
-//
-//                } else {
-//                    //Error On LogIn
-//                    Log.w("ERROR", "Wrong Information");
-//                    Toast.makeText(this.getApplicationContext(),
-//                            "Wrong Info", Toast.LENGTH_LONG).show();
-//                    final Intent intent = getIntent();
-//                    Thread thread = new Thread() {
-//                        @Override
-//                        public void run() {
-//                            try {
-//                                Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
-//                                MainActivity.this.finish();
-//                                startActivity(intent);
-//                            } catch (Exception e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    };
-//                    thread.start();
-//                }
-//
-//            }
+
 
 
 
@@ -499,8 +428,9 @@ public class MainActivity extends AppCompatActivity {
         List<String> Tlist = new ArrayList<>(); //Title List
         List<String> Dlist = new ArrayList<>(); //Date List
         List<Boolean> SList = new ArrayList<>(); //is Seen
-        List<Integer> IList = new ArrayList<>();
-        List<Boolean> CList = new ArrayList<>();
+        List<Integer> IList = new ArrayList<>(); //Message ID
+        List<Boolean> CList = new ArrayList<>(); //Critical
+        List<Boolean> SSList = new ArrayList<>(); //SendSeen
 
 //        for (int i = Message_Number; i < MESSAGES.size(); i++) {
         for (int i = 0; i < MESSAGES.size(); i++) {
@@ -510,6 +440,7 @@ public class MainActivity extends AppCompatActivity {
             SList.add(MESSAGES.get(i).isSeen());
             IList.add(MESSAGES.get(i).getMessageID());
             CList.add(MESSAGES.get(i).getCritical());
+            SSList.add(MESSAGES.get(i).isSendSeen());
         }
         Message_Number = MESSAGES.size();
 //        if (MESSAGES.isEmpty()) {
@@ -523,7 +454,7 @@ public class MainActivity extends AppCompatActivity {
 //                android.R.layout.simple_list_item_1,
 //                Tlist);
 
-        lv.setAdapter(new CustomAdapter(this, Tlist, Mlist, SList, IList, CList));
+        lv.setAdapter(new CustomAdapter(this, Tlist, Mlist, SList, IList, CList, SSList));
 
 //        lv.setAdapter(arrayAdapter);
 
@@ -536,11 +467,12 @@ public class MainActivity extends AppCompatActivity {
         List<Boolean> isSeen;
         List<Integer> IList;
         List<Boolean> CList;
+        List<Boolean> SSList;
         Context context;
 
         private LayoutInflater inflater = null;
 
-        public CustomAdapter(MainActivity mainActivity, List<String> MessagesTitle, List<String> MessagesBody, List<Boolean> isSeen, List<Integer> IList, List<Boolean> CList) {
+        public CustomAdapter(MainActivity mainActivity, List<String> MessagesTitle, List<String> MessagesBody, List<Boolean> isSeen, List<Integer> IList, List<Boolean> CList, List<Boolean> SSList) {
 
             // TODO Auto-generated constructor stub
             context = mainActivity;
@@ -549,6 +481,7 @@ public class MainActivity extends AppCompatActivity {
             this.isSeen = isSeen;
             this.IList = IList;
             this.CList = CList;
+            this.SSList = SSList;
             inflater = (LayoutInflater) context.
                     getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
@@ -602,41 +535,12 @@ public class MainActivity extends AppCompatActivity {
                     bundle.putString(getString(R.string.Title), Titles.get(position));
                     bundle.putString(getString(R.string.Body), Bodies.get(position));
                     bundle.putBoolean(getString(R.string.Critical), CList.get(position));
+                    bundle.putBoolean(getString(R.string.SendSeen), SSList.get(position));
                     bundle.putInt(getString(R.string.ID), IList.get(position));
+                    bundle.putBoolean(getString(R.string.Seen), isSeen.get(position));
                     showActivity.putExtras(bundle);
                     startActivity(showActivity);
 
-//                    setContentView(R.layout.messages_preview_layout);
-//                    TextView t1 = (TextView) findViewById(R.id.titledetail);
-//                    TextView t2 = (TextView) findViewById(R.id.bodydetail);
-//                    ImageView i1 = (ImageView) findViewById(R.id.statedetail);
-//                    ImageView i2 = (ImageView) findViewById(R.id.Critical);
-//                    t1.setText(Titles.get(position));
-//                    t2.setText(Bodies.get(position));
-//                    i1.setImageResource(R.mipmap.seen);
-//                    if(CList.get(position))
-//                    {
-//                        i2.setImageResource(R.mipmap.critical);
-//                    }
-//                    ContentValues values = new ContentValues();
-//                    values.put("Seen", true);
-//                    SQLiteDatabase database = db.getWritableDatabase();
-//                    database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(IList.get(position))});
-//                    database.close();
-//
-//
-//                    int z = 3;
-//                    String[] data = new String[]{z + "", "1", String.valueOf(IList.get(position))};
-//
-//                    SendStatusAsyncTask taskstate = new SendStatusAsyncTask(context);
-//
-//                    try {
-//                        Object b = taskstate.execute(data).get();
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    } catch (ExecutionException e) {
-//                        e.printStackTrace();
-//                    }
 
 
                 }

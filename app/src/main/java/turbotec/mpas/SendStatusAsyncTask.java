@@ -33,11 +33,13 @@ public class SendStatusAsyncTask extends AsyncTask {
 
     public SendStatusAsyncTask(Context myContext) {
         MyContext = myContext;
+        share = SharedPreferenceHandler.getInstance(MyContext);
+        db = DatabaseHandler.getInstance(MyContext);
+        database = db.getWritableDatabase();
     }
 
     protected void onPreExecute() {
-        share = SharedPreferenceHandler.getInstance(MyContext);
-        db = DatabaseHandler.getInstance(MyContext);
+
     }
 
 
@@ -88,7 +90,7 @@ public class SendStatusAsyncTask extends AsyncTask {
             response = envelope.getResponse();
 
             if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
-                database = db.getWritableDatabase();
+
                 ContentValues values = new ContentValues();
                 values.put("SendDelivered", true);
                 String[] MIDs = IDs.split(";");
@@ -97,7 +99,7 @@ public class SendStatusAsyncTask extends AsyncTask {
                 }
                 database.close();
             } else if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
-                database = db.getWritableDatabase();
+
                 ContentValues values = new ContentValues();
                 values.put("SendSeen", true);
                 values.put("SendDelivered", true);

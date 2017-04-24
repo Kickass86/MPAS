@@ -14,10 +14,10 @@
                 android:id="@+id/title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="8dip"
-                android:layout_marginStart="8dip"
+                android:layout_marginLeft="5dip"
+                android:layout_marginStart="5dip"
                 android:layout_marginTop="10dip"
-                android:layout_weight="30"
+                android:layout_weight="10"
                 android:ellipsize="end"
                 android:maxLines="1"
 
@@ -40,8 +40,8 @@
                 android:id="@+id/body"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginRight="8dip"
                 android:layout_marginTop="10dip"
-
                 android:layout_weight="45"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -54,7 +54,7 @@
                 android:id="@+id/Critical"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dip"
+                android:layout_marginTop="8dip"
                 android:layout_weight="10"
                 android:textSize="16sp" />
 
@@ -62,7 +62,7 @@
                 android:id="@+id/state"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dip"
+                android:layout_marginTop="8dip"
                 android:layout_weight="10"
                 android:textSize="16sp" />
 

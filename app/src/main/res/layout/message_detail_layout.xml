@@ -6,13 +6,10 @@
 
     <TextView
         android:id="@+id/titledetail2"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/bodydetail2"
         android:layout_centerHorizontal="true"
-        android:layout_marginEnd="20dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginStart="20dp"
         android:layout_marginTop="10dip"
         android:singleLine="false"
         android:textAlignment="center"
@@ -21,25 +18,21 @@
         android:textStyle="bold" />
     <!--android:layout_alignParentLeft="true"-->
     <!--android:layout_alignParentStart="true"-->
+    <!--<ImageView-->
+    <!--android:id="@id/dummy"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_above="@+id/statedetail2"-->
+    <!--android:layout_alignParentEnd="true"-->
+    <!--android:layout_alignParentRight="true"-->
+    <!--android:layout_marginRight="8dip"-->
+    <!--android:layout_weight="1"-->
+    <!--android:textSize="16sp" />-->
 
 
     <!--android:layout_alignParentRight="true"-->
 
-    <TextView
-        android:id="@+id/bodydetail2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/titledetail"
-        android:layout_centerHorizontal="true"
-        android:layout_marginEnd="20dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="86dp"
-        android:singleLine="false"
-        android:textAlignment="center"
-        android:textColor="#000000"
-        android:textSize="16sp" />
+
 
     <ImageView
         android:id="@+id/statedetail2"
@@ -48,8 +41,8 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/titledetail2"
-        android:layout_marginEnd="5dp"
-        android:layout_marginRight="5dp"
+        android:layout_marginRight="8dip"
+        android:layout_marginTop="10dp"
         android:layout_weight="0.5"
         android:textSize="16sp" />
 
@@ -57,19 +50,33 @@
         android:id="@+id/Critical2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/bodydetail"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/statedetail2"
+        android:layout_below="@id/statedetail2"
+        android:layout_marginRight="8dip"
         android:layout_weight="1"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@id/bodydetail2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/titledetail2"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_toLeftOf="@id/statedetail2"
+        android:singleLine="false"
+        android:textAlignment="center"
+        android:textColor="#000000"
         android:textSize="16sp" />
 
     <Button
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/bodydetail2"
+        android:layout_below="@id/bodydetail2"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="68dp"
+        android:layout_marginTop="10dp"
         android:text="Delete" />
 
 </RelativeLayout>

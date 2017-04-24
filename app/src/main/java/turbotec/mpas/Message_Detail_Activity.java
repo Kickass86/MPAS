@@ -12,29 +12,39 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.concurrent.ExecutionException;
-
 public class Message_Detail_Activity extends AppCompatActivity {
 
     private static DatabaseHandler db;
     final Context context = this;
+    SQLiteDatabase database;
     private Button DelBut;
     private Integer ID = 1;
+
+    public Message_Detail_Activity() {
+
+        db = DatabaseHandler.getInstance(this);
+
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_message__detail);
-        db = DatabaseHandler.getInstance(this);
+        setContentView(R.layout.message_detail_layout);
+
         Bundle b = getIntent().getExtras();
         String Title = "";
         String Body = "";
         Boolean Critical = false;
+        Boolean isSeen = false;
+        Boolean isSendSeen = false;
 
         if (b != null) {
             Title = b.getString(getString(R.string.Title));
             Body = b.getString(getString(R.string.Body));
             Critical = b.getBoolean(getString(R.string.Critical));
+            isSeen = b.getBoolean(getString(R.string.Seen));
+            isSendSeen = b.getBoolean(getString(R.string.SendSeen));
             ID = b.getInt(getString(R.string.ID));
 
 
@@ -48,26 +58,30 @@ public class Message_Detail_Activity extends AppCompatActivity {
             if (Critical) {
                 i2.setImageResource(R.mipmap.critical);
             }
-            ContentValues values = new ContentValues();
-            values.put("Seen", true);
-            SQLiteDatabase database = db.getWritableDatabase();
-            database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(ID)});
-            database.close();
+            if (!isSeen) {
+                ContentValues values = new ContentValues();
+                values.put("Seen", true);
+                database = db.getWritableDatabase();
+                database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(ID)});
+                database.close();
+            }
         }
 
-        int z = 3;
-        String[] data = new String[]{z + "", "1", String.valueOf(ID)};
 
-        SendStatusAsyncTask taskstate = new SendStatusAsyncTask(this);
+        if (!isSendSeen) {
+            int z = 3;
+            String[] data = new String[]{z + "", "1", String.valueOf(ID)};
 
-        try {
-            Object d = taskstate.execute(data).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            SendStatusAsyncTask taskstate = new SendStatusAsyncTask(this);
+
+//            try {
+//                Object d = taskstate.execute(data).get();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            } catch (ExecutionException e) {
+//                e.printStackTrace();
+//            }
         }
-
         DelBut = (Button) findViewById(R.id.button2);
 
         DelBut.setOnClickListener(new View.OnClickListener() {
