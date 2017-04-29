@@ -17,6 +17,9 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 
 /**
  * Created by ZAMANI on 4/9/2017.
@@ -26,9 +29,16 @@ public class SendStatusAsyncTask extends AsyncTask {
 
 
     private final Context MyContext;
+    private final String ip = "192.168.1.13";
+    private final int port = 80;
     private SharedPreferenceHandler share;
     private DatabaseHandler db;
     private SQLiteDatabase database;
+    private String SOAP_ACTION_CHECK = "CheckUser";
+    private String SOAP_ACTION_DELIVERED = "Delivered";
+    private String OPERATION_NAME_DELIVERED = "Delivered";
+    private String WSDL_TARGET_NAMESPACE;
+    private String SOAP_ADDRESS;
 
 
     public SendStatusAsyncTask(Context myContext) {
@@ -43,6 +53,35 @@ public class SendStatusAsyncTask extends AsyncTask {
     }
 
 
+    private boolean isLocalReachable() {
+
+        boolean exists = false;
+
+        try {
+            SocketAddress sockaddr = new InetSocketAddress(ip, port);
+            // Create an unbound socket
+            Socket sock = new Socket();
+
+            // This method will block no more than timeoutMs.
+            // If the timeout occurs, SocketTimeoutException is thrown.
+            int timeoutMs = 200;   // 200 milliseconds
+            sock.connect(sockaddr, timeoutMs);
+            exists = true;
+
+            sock.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return exists;
+    }
+
+
+
+
+
+
     @Override
     protected Boolean doInBackground(Object[] params) {
 
@@ -52,6 +91,18 @@ public class SendStatusAsyncTask extends AsyncTask {
         for (int i = 2; i < num; i++) {
             IDs = IDs + (params[i] + ";");
         }
+
+
+        if (isLocalReachable()) {
+            SOAP_ACTION_DELIVERED = "http://192.168.1.13/Delivered";
+            WSDL_TARGET_NAMESPACE = "http://192.168.1.13/";
+            SOAP_ADDRESS = "http://192.168.1.13/Andr/WS.asmx";
+        } else {
+            SOAP_ACTION_DELIVERED = "http://mpas.migtco.com/Delivered";
+            WSDL_TARGET_NAMESPACE = "http://mpas.migtco.com/";
+            SOAP_ADDRESS = "http://mpas.migtco.com/Andr/WS.asmx";
+        }
+
 
 
         InputStream is = null;
@@ -68,7 +119,8 @@ public class SendStatusAsyncTask extends AsyncTask {
 
             plaintext = new String(Base64.encode(plaintext.getBytes(), Base64.DEFAULT));
 
-            SoapObject request = new SoapObject("http://192.168.1.13/", "Delivered");
+//            SoapObject request = new SoapObject("http://192.168.1.13/", "Delivered");
+            SoapObject request = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
             PropertyInfo pi = new PropertyInfo();
             pi.setName("Value");
             pi.setValue(plaintext);
@@ -83,10 +135,12 @@ public class SendStatusAsyncTask extends AsyncTask {
             envelope.setOutputSoapObject(request);
 
 //            HttpTransportSE httpTransport = new HttpTransportSE("http://mpas.migtco.com/Andr/WS.asmx");
-            HttpTransportSE httpTransport = new HttpTransportSE("http://192.168.1.13/Andr/WS.asmx");
+//            HttpTransportSE httpTransport = new HttpTransportSE("http://192.168.1.13/Andr/WS.asmx");
+            HttpTransportSE httpTransport = new HttpTransportSE(SOAP_ADDRESS);
             Object response;
 //            httpTransport.call("http://mpas.migtco.com/CheckUser", envelope);
-            httpTransport.call("http://192.168.1.13/Delivered", envelope);
+//            httpTransport.call("http://192.168.1.13/Delivered", envelope);
+            httpTransport.call(SOAP_ACTION_DELIVERED, envelope);
             response = envelope.getResponse();
 
             if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
@@ -98,7 +152,7 @@ public class SendStatusAsyncTask extends AsyncTask {
                     database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
                 }
                 database.close();
-            } else if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
+            } else if (response.toString().contains(MyContext.getString(R.string.SendSeen))) {
 
                 ContentValues values = new ContentValues();
                 values.put("SendSeen", true);

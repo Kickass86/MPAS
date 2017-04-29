@@ -206,10 +206,10 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 //        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 //        nMgr.cancelAll();
-//        if (share.GetStatus().equals(getString(R.string.OK))) {
-//            GetMessagesfromDB();
-//            ShowMessages();
-//        }
+        if (share.GetStatus().equals(getString(R.string.OK))) {
+            GetMessagesfromDB();
+            ShowMessages();
+        }
     }
 
     /**

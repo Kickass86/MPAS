@@ -87,12 +87,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         DatabaseHandler d = DatabaseHandler.getInstance(MyContext);
         SQLiteDatabase db = d.getWritableDatabase();
         int f = 0;
-        Cursor cursor = db.rawQuery("SELECT * from Messages WHERE " + SendDelivered + " = '0';", null);
+        Cursor cursor = db.rawQuery("SELECT * from Messages WHERE " + SendDelivered + " = 0;", null);
         if (cursor.getCount() > 0)
             f = 1;
         cursor.close();
 
-        cursor = db.rawQuery("SELECT * from Messages WHERE " + SendSeen + " = '0' AND " + Seen + " = '1';", null);
+        cursor = db.rawQuery("SELECT * from Messages WHERE " + SendSeen + " = 0 AND " + Seen + " = 1;", null);
         if (cursor.getCount() > 0)
             f = 2;
         cursor.close();

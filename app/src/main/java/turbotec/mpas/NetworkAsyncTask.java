@@ -489,7 +489,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 //                DatabaseHandler d = DatabaseHandler.getInstance(MyContext);
                 int f = 0;
                 IDs = "";
-                Cursor cursor = database.rawQuery("SELECT * from Messages WHERE SendDelivered = '0';", null);
+                Cursor cursor = database.rawQuery("SELECT * from Messages WHERE SendDelivered = 0;", null);
                 try {
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
@@ -545,7 +545,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 //                DatabaseHandler d = DatabaseHandler.getInstance(MyContext);
                 int f = 0;
                 IDs = "";
-                Cursor cursor = database.rawQuery("SELECT * from Messages WHERE SendDelivered = '0';", null);
+                Cursor cursor = database.rawQuery("SELECT * from Messages WHERE SendDelivered = 0;", null);
                 try {
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {

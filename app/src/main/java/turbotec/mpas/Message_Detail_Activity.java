@@ -12,6 +12,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.concurrent.ExecutionException;
+
 public class Message_Detail_Activity extends AppCompatActivity {
 
     private static DatabaseHandler db;
@@ -74,13 +76,13 @@ public class Message_Detail_Activity extends AppCompatActivity {
 
             SendStatusAsyncTask taskstate = new SendStatusAsyncTask(this);
 
-//            try {
-//                Object d = taskstate.execute(data).get();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            } catch (ExecutionException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                Object d = taskstate.execute(data).get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
         }
         DelBut = (Button) findViewById(R.id.button2);
 
