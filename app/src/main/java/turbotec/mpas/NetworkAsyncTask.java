@@ -236,10 +236,10 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             WSDL_TARGET_NAMESPACE = "http://192.168.1.13/";
             SOAP_ADDRESS = "http://192.168.1.13/Andr/WS.asmx";
         } else {
-            SOAP_ACTION_CHECK = "http://mpas.migtco.com/CheckUser";
-            SOAP_ACTION_DELIVERED = "http://mpas.migtco.com/Delivered";
-            WSDL_TARGET_NAMESPACE = "http://mpas.migtco.com/";
-            SOAP_ADDRESS = "http://mpas.migtco.com/Andr/WS.asmx";
+            SOAP_ACTION_CHECK = "https://mpas.migtco.com:3000/CheckUser";
+            SOAP_ACTION_DELIVERED = "https://mpas.migtco.com:3000/Delivered";
+            WSDL_TARGET_NAMESPACE = "https://mpas.migtco.com:3000/";
+            SOAP_ADDRESS = "https://mpas.migtco.com:3000/Andr/WS.asmx";
         }
 
 
@@ -484,8 +484,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
             }
 
-
-            if (db.unSend(MyContext) == 1) {
+            int undone = db.unSend(MyContext);
+            if (undone == 1) {
 //                DatabaseHandler d = DatabaseHandler.getInstance(MyContext);
                 int f = 0;
                 IDs = "";
@@ -541,11 +541,11 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                     }
 
                 }
-            } else if (db.unSend(MyContext) == 2) {
+            } else if (undone == 2) {
 //                DatabaseHandler d = DatabaseHandler.getInstance(MyContext);
-                int f = 0;
+                int f = 1;
                 IDs = "";
-                Cursor cursor = database.rawQuery("SELECT * from Messages WHERE SendDelivered = 0;", null);
+                Cursor cursor = database.rawQuery("SELECT * from Messages WHERE SendSeen = 0  AND Seen = 1;", null);
                 try {
                     if (cursor != null) {
                         if (cursor.moveToFirst()) {
@@ -588,8 +588,9 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                 response = envelopeDel.getResponse();
 
 
-                if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
+                if (response.toString().contains(MyContext.getString(R.string.Seen))) {
                     ContentValues values = new ContentValues();
+                    values.put("SendSeen", true);
                     values.put("SendDelivered", true);
                     String[] MIDs = IDs.split(";");
                     for (int i = 0; i < MIDs.length; i++) {

@@ -1,23 +1,32 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'key'
+            keyPassword 'left4de@d'
+            storeFile file('D:/Workspace/AndroidKey.jks')
+            storePassword 'livhkclhkd'
+        }
+    }
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
-
     defaultConfig {
         applicationId "turbotec.mpas"
         minSdkVersion 14
         targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
         debug {
             debuggable true
+            signingConfig signingConfigs.config
         }
     }
 }
@@ -29,6 +38,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:design:25.1.0'
-//    compile 'com.android.volley:volley:1.0.0'
+    //    compile 'com.android.volley:volley:1.0.0'
     testCompile 'junit:junit:4.12'
 }

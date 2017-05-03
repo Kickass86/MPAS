@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
@@ -196,8 +197,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+
+        unregisterReceiver(broadcastReceiver);
         super.onDestroy();
-//        unregisterReceiver(broadcastReceiver);
 //        unregisterReceiver(NotifyReceiver);
     }
 
@@ -219,6 +221,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setContentView(R.layout.waiting_layout);
+        registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
+
+//        registerReceiver(NotifyReceiver, new IntentFilter("Notification fire"));
+//        if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
+//                && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.Active)))) {
         String state = share.GetStatus();
 
         if (state.equals(getString(R.string.OK))) {

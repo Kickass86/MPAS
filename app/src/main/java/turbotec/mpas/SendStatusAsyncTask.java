@@ -98,9 +98,9 @@ public class SendStatusAsyncTask extends AsyncTask {
             WSDL_TARGET_NAMESPACE = "http://192.168.1.13/";
             SOAP_ADDRESS = "http://192.168.1.13/Andr/WS.asmx";
         } else {
-            SOAP_ACTION_DELIVERED = "http://mpas.migtco.com/Delivered";
-            WSDL_TARGET_NAMESPACE = "http://mpas.migtco.com/";
-            SOAP_ADDRESS = "http://mpas.migtco.com/Andr/WS.asmx";
+            SOAP_ACTION_DELIVERED = "https://mpas.migtco.com:3000/Delivered";
+            WSDL_TARGET_NAMESPACE = "https://mpas.migtco.com:3000/";
+            SOAP_ADDRESS = "https://mpas.migtco.com:3000/Andr/WS.asmx";
         }
 
 
