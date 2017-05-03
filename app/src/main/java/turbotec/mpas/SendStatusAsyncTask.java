@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Base64;
 
-import org.json.JSONObject;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.SoapFault;
 import org.ksoap2.serialization.PropertyInfo;
@@ -16,7 +15,6 @@ import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -34,7 +32,7 @@ public class SendStatusAsyncTask extends AsyncTask {
     private SharedPreferenceHandler share;
     private DatabaseHandler db;
     private SQLiteDatabase database;
-    private String SOAP_ACTION_CHECK = "CheckUser";
+    //    private String SOAP_ACTION_CHECK = "CheckUser";
     private String SOAP_ACTION_DELIVERED = "Delivered";
     private String OPERATION_NAME_DELIVERED = "Delivered";
     private String WSDL_TARGET_NAMESPACE;
@@ -105,9 +103,6 @@ public class SendStatusAsyncTask extends AsyncTask {
 
 
 
-        InputStream is = null;
-        String result = "";
-        JSONObject jsonObject = null;
 
         try {
 
@@ -152,7 +147,7 @@ public class SendStatusAsyncTask extends AsyncTask {
                     database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
                 }
                 database.close();
-            } else if (response.toString().contains(MyContext.getString(R.string.SendSeen))) {
+            } else if (response.toString().contains(MyContext.getString(R.string.Seen))) {
 
                 ContentValues values = new ContentValues();
                 values.put("SendSeen", true);

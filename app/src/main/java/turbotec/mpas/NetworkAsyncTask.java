@@ -227,7 +227,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     protected String doInBackground(Object... params) {
 
 
-        CheckVersion();
+
 
 
         if (isLocalReachable()) {
@@ -242,6 +242,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             SOAP_ADDRESS = "https://mpas.migtco.com:3000/Andr/WS.asmx";
         }
 
+        CheckVersion();
 
         String username = share.GetUsername();
         String password = share.GetPassword();
