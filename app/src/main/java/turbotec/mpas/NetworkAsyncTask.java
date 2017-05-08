@@ -28,7 +28,6 @@ import org.ksoap2.transport.HttpTransportSE;
 import org.w3c.dom.Document;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
@@ -219,6 +218,56 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+//        Log.v("Intent Service", "Check Request");
+//        String responseMessage = "";
+//        String value = "Value1=" + share.GetToken() + ",Value2=" + share.GetDeviceID();
+//        requestString = requestString + new String(Base64.encode(value.getBytes(), Base64.DEFAULT));
+//
+//        try {
+//
+//            url = new URL(requestString);
+//            HttpURLConnection c = (HttpURLConnection) url.openConnection();
+//            c.setRequestMethod("GET");
+//            c.setDoOutput(true);
+//            c.connect();
+//
+////            String PATH = Environment.getExternalStorageDirectory() + "/download/";
+//            String PATH = Environment.getDataDirectory() + "/download/";
+//            File file = new File(PATH);
+//            file.mkdirs();
+//            File outputFile = new File(file, "app.apk");
+//            FileOutputStream fos = new FileOutputStream(outputFile);
+//
+//            InputStream is = c.getInputStream();
+//
+//            byte[] buffer = new byte[1024];
+//            int len1 = 0;
+//            while ((len1 = is.read(buffer)) != -1) {
+//                fos.write(buffer, 0, len1);
+//            }
+//            fos.close();
+//            is.close();//till here, it works fine - .apk is download to my sdcard in download file
+//
+//            Intent promptInstall = new Intent(Intent.ACTION_VIEW)
+//                    .setData(Uri.parse(PATH + "app.apk"))
+//                    .setType("application/android.com.app");
+//            startActivity(promptInstall);//installation is not working
+//
+//
+//        } catch (IOException e) {
+//            Log.w("HTTP3:", e);
+//            responseMessage = e.getMessage();
+//        } catch (Exception e) {
+//            Log.w("HTTP4:", e);
+//            responseMessage = e.getMessage();
+//        }
+//
+//
+//        Intent broadcastIntent = new Intent();
+//        broadcastIntent.setAction(SplashActivity.VersionCheckReceiver.PROCESS_RESPONSE);
+//        broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+//        broadcastIntent.putExtra(RESPONSE_MESSAGE, responseMessage);
+//        sendBroadcast(broadcastIntent);
 
 
     }
@@ -257,15 +306,15 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
         NotificationManager mNotificationManager =
                 (NotificationManager) MyContext.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        InputStream is = null;
-        String result = "";
-        JSONObject jsonObject = null;
+//        InputStream is = null;
+//        String result = "";
+//        JSONObject jsonObject = null;
 
         try {
 
             // requests!
 
-            String ur = "";
+//            String ur = "";
             String plaintext = "value1=" + username + ",value2=" + password
                     + ",value3=" + DeviceID
                     + ",value4=";

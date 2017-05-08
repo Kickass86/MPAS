@@ -2,14 +2,12 @@ package turbotec.mpas;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -26,21 +24,20 @@ import java.net.URL;
 public class VersionCheck extends IntentService {
 
     public static final String RESPONSE_MESSAGE = "myResponseMessage";
+    public static final String REQUEST_DOWNLOAD = "myDownloadRequest";
     private final String ip = "192.168.1.13";
     private final int port = 80;
     URL url = null;
+    private SharedPreferenceHandler share;
     private String requestString;
+    private String downloadString;
 
 
     public VersionCheck() {
         super("Version Check");
-        if (isLocalReachable()) {
-            requestString = "http://192.168.1.13/Andr/Download.ashx";
 
-        } else {
-            requestString = "https://mpas.migtco.com:3000/Andr/Download.ashx";
 
-        }
+        share = SharedPreferenceHandler.getInstance(this);
 
     }
 
@@ -55,7 +52,7 @@ public class VersionCheck extends IntentService {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 200;   // 200 milliseconds
+            int timeoutMs = 500;   // 500 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 
@@ -70,54 +67,70 @@ public class VersionCheck extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        if (isLocalReachable()) {
+            requestString = "http://192.168.1.13/Andr/CheckVersion.ashx?Value=";
+            downloadString = "http://192.168.1.13/Andr/Download.ashx";
+
+        } else {
+            requestString = "https://mpas.migtco.com:3000/Andr/CheckVersion.ashx?Value=";
+            downloadString = "https://mpas.migtco.com:3000/Andr/Download.ashx";
+
+        }
 
 //        String requestString = intent.getStringExtra(REQUEST_STRING);
         Log.v("Intent Service", "Check Request");
         String responseMessage = "";
+        String value = "Val1=" + share.GetDeviceID() + ",Val2=" + share.GetToken();
+        requestString = requestString + new String(Base64.encode(value.getBytes(), Base64.DEFAULT));
+        downloadString = downloadString + new String(Base64.encode(value.getBytes(), Base64.DEFAULT));
+        requestString = requestString.replaceAll("\n", "");
+        downloadString = downloadString.replaceAll("\n", "");
 
         try {
+
 
             url = new URL(requestString);
             HttpURLConnection c = (HttpURLConnection) url.openConnection();
             c.setRequestMethod("GET");
-            c.setDoOutput(true);
+//            c.setDoOutput(true);
             c.connect();
 
-            String PATH = Environment.getExternalStorageDirectory() + "/download/";
-            File file = new File(PATH);
-            file.mkdirs();
-            File outputFile = new File(file, "app.apk");
-            FileOutputStream fos = new FileOutputStream(outputFile);
+//
+//            URL url = new URL(requestString);
+//            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+//            urlConnection.connect();
+            int code = c.getResponseCode();
+            String s = "";
+            if (code == 200) {
 
-            InputStream is = c.getInputStream();
+//                String s = urlConnection.getResponseMessage();
+                final InputStream is = c.getInputStream();
 
-            byte[] buffer = new byte[1024];
-            int len1 = 0;
-            while ((len1 = is.read(buffer)) != -1) {
-                fos.write(buffer, 0, len1);
+                if (is != null) {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+                    String line = "";
+
+                    while ((line = bufferedReader.readLine()) != null)
+                        s += line;
+                }
+                is.close();
             }
-            fos.close();
-            is.close();//till here, it works fine - .apk is download to my sdcard in download file
+            c.disconnect();
 
-            Intent promptInstall = new Intent(Intent.ACTION_VIEW)
-                    .setData(Uri.parse(PATH + "app.apk"))
-                    .setType("application/android.com.app");
-            startActivity(promptInstall);//installation is not working
+            responseMessage = s;
 
 
-        } catch (IOException e) {
-            Log.w("HTTP3:", e);
-            responseMessage = e.getMessage();
         } catch (Exception e) {
-            Log.w("HTTP4:", e);
+            Log.w("HTTP:", e);
             responseMessage = e.getMessage();
         }
 
 
         Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction(SplashActivity.VersionCheckReciever.PROCESS_RESPONSE);
+        broadcastIntent.setAction(SplashActivity.VersionCheckReceiver.PROCESS_RESPONSE);
         broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
         broadcastIntent.putExtra(RESPONSE_MESSAGE, responseMessage);
+        broadcastIntent.putExtra(REQUEST_DOWNLOAD, downloadString);
         sendBroadcast(broadcastIntent);
 
     }
