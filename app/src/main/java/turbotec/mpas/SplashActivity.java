@@ -17,6 +17,8 @@ import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.io.File;
+
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -25,6 +27,7 @@ public class SplashActivity extends AppCompatActivity {
     private ProgressBar bar;
     private String appURI = "";
     private int i = 0;
+    private boolean sync = false;
     private int versionCode;
     private Uri Download_Uri;
     private VersionCheckReceiver receiver;
@@ -37,26 +40,55 @@ public class SplashActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
 
             String action = intent.getAction();
+            long referenceId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
             if (action.equals(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) {
                 //check if the broadcast message is for our Enqueued download
-                long referenceId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-                if (downloadReference == referenceId) {
 
-                    Log.v(LOG_TAG, "Downloading of the new app version complete");
-                    //start the installation of the latest version
-                    Intent installIntent = new Intent(Intent.ACTION_VIEW);
-                    installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
-                            downloadManager.getMimeTypeForDownloadedFile(downloadReference));
+                DownloadManager dMgr = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                Cursor c = dMgr.query(new DownloadManager.Query().setFilterById(referenceId));
+
+                if (c.moveToFirst()) {
+                    int status = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
+
+                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                        //Download completed, celebrate
+
+
+                        if (downloadReference == referenceId) {
+
+                            Log.v(LOG_TAG, "Downloading of the new app version complete");
+                            //start the installation of the latest version
+//                            File outputFile = new File(Environment.DIRECTORY_DOWNLOADS + "/MyAndroidApp.apk");
+//                            if(outputFile.exists()) {
+                            Intent installIntent = new Intent(Intent.ACTION_VIEW);
+//                    installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
+//                            "application/vnd.android.package-archive");
+                            installIntent.setDataAndType(Uri.fromFile(new File(Environment.DIRECTORY_DOWNLOADS + "/MyAndroidApp.apk")),
+                                    "application/vnd.android.package-archive");
+//                                installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
+//                                        "application/vnd.android.package-archive");
 //                    installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
 //                                        downloadManager.getMimeTypeForDownloadedFile(downloadReference));
-                    installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                    startActivity(installIntent);
-                    unregisterReceiver(this);
-                    finish();
+                            startActivity(installIntent);
+
+                            unregisterReceiver(this);
+                            finish();
+                        }
 
 
+//                        }
+
+
+                    } else {
+                        int reason = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON));
+                        Log.d("Failed!", "Download not correct, status [" + status + "] reason [" + reason + "]");
+
+                    }
                 }
+
+
             }
         }
     };
@@ -88,6 +120,7 @@ public class SplashActivity extends AppCompatActivity {
         filter1.addCategory(Intent.CATEGORY_DEFAULT);
         receiver = new VersionCheckReceiver();
         registerReceiver(receiver, filter1);
+        sync = true;
 
         //Broadcast receiver for the download manager
         IntentFilter filter2 = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
@@ -107,7 +140,9 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
 //        unregisterReceiver(downloadReceiver);
-//        unregisterReceiver(receiver);
+        if (sync) {
+            unregisterReceiver(receiver);
+        }
         super.onDestroy();
     }
 
@@ -149,10 +184,11 @@ public class SplashActivity extends AppCompatActivity {
                             downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                             Download_Uri = Uri.parse(appURI);
                             DownloadManager.Request request = new DownloadManager.Request(Download_Uri);
-                            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
-                            request.setAllowedOverRoaming(false);
+//                            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+//                            request.setAllowedOverRoaming(false);
                             request.setTitle("My Android App Download");
                             request.setDestinationInExternalFilesDir(SplashActivity.this, Environment.DIRECTORY_DOWNLOADS, "MyAndroidApp.apk");
+                            request.setMimeType("application/vnd.android.package-archive");
                             downloadReference = downloadManager.enqueue(request);
 
 //                        BroadcastReceiver onComplete = new BroadcastReceiver() {
@@ -167,7 +203,7 @@ public class SplashActivity extends AppCompatActivity {
 //                                finish();
 //                            }
 //                        };
-                            //register receiver for when .apk download is compete
+////                            register receiver for when .apk download is compete
 //                        registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
 
@@ -245,7 +281,10 @@ public class SplashActivity extends AppCompatActivity {
 
                                     Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
                                     SplashActivity.this.startActivity(mainIntent);
-                                    unregisterReceiver(VersionCheckReceiver.this);
+                                    if (sync) {
+                                        unregisterReceiver(VersionCheckReceiver.this);
+                                        sync = false;
+                                    }
                                     unregisterReceiver(downloadReceiver);
                                     SplashActivity.this.finish();
 //
@@ -278,7 +317,10 @@ public class SplashActivity extends AppCompatActivity {
 
                                 Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
                                 SplashActivity.this.startActivity(mainIntent);
-                                unregisterReceiver(VersionCheckReceiver.this);
+                                if (sync) {
+                                    unregisterReceiver(VersionCheckReceiver.this);
+                                    sync = false;
+                                }
                                 unregisterReceiver(downloadReceiver);
                                 SplashActivity.this.finish();
 //
@@ -316,7 +358,10 @@ public class SplashActivity extends AppCompatActivity {
 
                             Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
                             SplashActivity.this.startActivity(mainIntent);
-                            unregisterReceiver(VersionCheckReceiver.this);
+                            if (sync) {
+                                unregisterReceiver(VersionCheckReceiver.this);
+                                sync = false;
+                            }
                             unregisterReceiver(downloadReceiver);
                             SplashActivity.this.finish();
 //

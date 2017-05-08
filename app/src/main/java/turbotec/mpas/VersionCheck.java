@@ -52,7 +52,7 @@ public class VersionCheck extends IntentService {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 500;   // 500 milliseconds
+            int timeoutMs = 1000;   // 500 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 
@@ -69,11 +69,11 @@ public class VersionCheck extends IntentService {
     protected void onHandleIntent(Intent intent) {
         if (isLocalReachable()) {
             requestString = "http://192.168.1.13/Andr/CheckVersion.ashx?Value=";
-            downloadString = "http://192.168.1.13/Andr/Download.ashx";
+            downloadString = "http://192.168.1.13/Andr/Download.ashx?Value=";
 
         } else {
             requestString = "https://mpas.migtco.com:3000/Andr/CheckVersion.ashx?Value=";
-            downloadString = "https://mpas.migtco.com:3000/Andr/Download.ashx";
+            downloadString = "https://mpas.migtco.com:3000/Andr/Download.ashx?Value=";
 
         }
 
