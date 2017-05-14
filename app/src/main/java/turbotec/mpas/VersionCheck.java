@@ -52,7 +52,7 @@ public class VersionCheck extends IntentService {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 1000;   // 500 milliseconds
+            int timeoutMs = 50000;   // 50000 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 
@@ -79,7 +79,7 @@ public class VersionCheck extends IntentService {
 
 //        String requestString = intent.getStringExtra(REQUEST_STRING);
         Log.v("Intent Service", "Check Request");
-        String responseMessage = "";
+        int responseMessage = 0;
         String value = "Val1=" + share.GetDeviceID() + ",Val2=" + share.GetToken();
         requestString = requestString + new String(Base64.encode(value.getBytes(), Base64.DEFAULT));
         downloadString = downloadString + new String(Base64.encode(value.getBytes(), Base64.DEFAULT));
@@ -116,13 +116,16 @@ public class VersionCheck extends IntentService {
                 is.close();
             }
             c.disconnect();
-
-            responseMessage = s;
+            if (!(s.contains("Invalid") | s.contains("Error") | s.contains("Unable") | (s.contains("unexpected")))) {
+                responseMessage = Integer.valueOf(s);
+            } else {
+                responseMessage = 0;
+            }
 
 
         } catch (Exception e) {
             Log.w("HTTP:", e);
-            responseMessage = e.getMessage();
+            responseMessage = 0;
         }
 
 

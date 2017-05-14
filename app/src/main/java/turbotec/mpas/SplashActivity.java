@@ -26,8 +26,9 @@ public class SplashActivity extends AppCompatActivity {
     private final String LOG_TAG = "AppUpgrade";
     private ProgressBar bar;
     private String appURI = "";
+    private File myFile;
     private int i = 0;
-    private boolean sync = false;
+    private boolean isVCRregistered = false;
     private int versionCode;
     private Uri Download_Uri;
     private VersionCheckReceiver receiver;
@@ -63,7 +64,7 @@ public class SplashActivity extends AppCompatActivity {
                             Intent installIntent = new Intent(Intent.ACTION_VIEW);
 //                    installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
 //                            "application/vnd.android.package-archive");
-                            installIntent.setDataAndType(Uri.fromFile(new File(Environment.DIRECTORY_DOWNLOADS + "/MyAndroidApp.apk")),
+                            installIntent.setDataAndType(Uri.fromFile(myFile),
                                     "application/vnd.android.package-archive");
 //                                installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
 //                                        "application/vnd.android.package-archive");
@@ -75,6 +76,7 @@ public class SplashActivity extends AppCompatActivity {
 
                             unregisterReceiver(this);
                             finish();
+                            return;
                         }
 
 
@@ -92,6 +94,7 @@ public class SplashActivity extends AppCompatActivity {
             }
         }
     };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +123,7 @@ public class SplashActivity extends AppCompatActivity {
         filter1.addCategory(Intent.CATEGORY_DEFAULT);
         receiver = new VersionCheckReceiver();
         registerReceiver(receiver, filter1);
-        sync = true;
+        isVCRregistered = true;
 
         //Broadcast receiver for the download manager
         IntentFilter filter2 = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
@@ -140,7 +143,7 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
 //        unregisterReceiver(downloadReceiver);
-        if (sync) {
+        if (isVCRregistered) {
             unregisterReceiver(receiver);
         }
         super.onDestroy();
@@ -156,40 +159,57 @@ public class SplashActivity extends AppCompatActivity {
             String action = intent.getAction();
             if (action.equals(VersionCheckReceiver.PROCESS_RESPONSE)) {
 
-                String responseMessage = intent.getStringExtra(VersionCheck.RESPONSE_MESSAGE);
+//                String responseMessage = intent.getStringExtra(VersionCheck.RESPONSE_MESSAGE);
+                int latestVersion = intent.getIntExtra(VersionCheck.RESPONSE_MESSAGE, 0);
                 appURI = intent.getStringExtra(VersionCheck.REQUEST_DOWNLOAD);
-                Log.v(LOG_TAG, responseMessage);
+                Log.v(LOG_TAG, latestVersion + "");
 
-                //parse the JSON response
-//            JSONObject responseObj;
+
                 try {
-//                responseObj = new JSONObject(responseMessage);
+//
 
-//                boolean success = responseObj.getBoolean("success");
-                    //if the reponse was successful check further
-                    if (!(responseMessage.contains("Invalid") | responseMessage.contains("Error") | responseMessage.contains("Unable") | (responseMessage.contains("unexpected")))) {
-                        //get the latest version from the JSON string
-                        String latestVersion = responseMessage;
-                        //get the latest application URI from the JSON string
+                    if ((latestVersion != 0) & (latestVersion != (versionCode))) {
+
 
                         //check if we need to upgrade?
-                        if (!((Integer.valueOf(latestVersion)).equals(versionCode))) {
-                            //oh yeah we do need an upgrade, let the user know send an alert message
+                        myFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/MPAS-V" + latestVersion + ".apk");
+                        if (myFile.exists()) // file downloaded before
+                        {
+                            Intent installIntent = new Intent(Intent.ACTION_VIEW);
+
+                            installIntent.setDataAndType(Uri.fromFile(myFile),
+                                    "application/vnd.android.package-archive");
+
+                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                            startActivity(installIntent);
+
+                            if (isVCRregistered) {
+                                unregisterReceiver(VersionCheckReceiver.this);
+                                isVCRregistered = false;
+                            }
+                            finish();
+                            return;
+                        }
+
+                        //oh yeah we do need an upgrade, let the user know send an alert message
 //                        AlertDialog.Builder builder = new AlertDialog.Builder(SplashActivity.this);
 //                        builder.setMessage("There is newer version of this application available, click OK to upgrade now")
 //                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
 //                                    //if the user agrees to upgrade
 //                                    public void onClick(DialogInterface dialog, int id) {
-                            //start downloading the file using the download manager
-                            downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                            Download_Uri = Uri.parse(appURI);
-                            DownloadManager.Request request = new DownloadManager.Request(Download_Uri);
+                        //start downloading the file using the download manager
+                        downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                        Download_Uri = Uri.parse(appURI);
+                        DownloadManager.Request request = new DownloadManager.Request(Download_Uri);
+
 //                            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
 //                            request.setAllowedOverRoaming(false);
-                            request.setTitle("My Android App Download");
-                            request.setDestinationInExternalFilesDir(SplashActivity.this, Environment.DIRECTORY_DOWNLOADS, "MyAndroidApp.apk");
-                            request.setMimeType("application/vnd.android.package-archive");
-                            downloadReference = downloadManager.enqueue(request);
+//                            request.setTitle("MyAndroidApp.apk");
+//                            request.setDestinationInExternalFilesDir(SplashActivity.this, Environment.DIRECTORY_DOWNLOADS, "MyAndroidApp.apk");
+                        request.setDestinationUri(Uri.fromFile(myFile));
+                        request.setMimeType("application/vnd.android.package-archive");
+                        downloadReference = downloadManager.enqueue(request);
 
 //                        BroadcastReceiver onComplete = new BroadcastReceiver() {
 //                            public void onReceive(Context ctxt, Intent intent) {
@@ -207,45 +227,45 @@ public class SplashActivity extends AppCompatActivity {
 //                        registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
 
-                            new Thread(new Runnable() {
+                        new Thread(new Runnable() {
 
-                                @Override
-                                public void run() {
+                            @Override
+                            public void run() {
 
-                                    boolean downloading = true;
+                                boolean downloading = true;
 
-                                    while (downloading) {
+                                while (downloading) {
 
-                                        DownloadManager.Query q = new DownloadManager.Query();
-                                        q.setFilterById(downloadReference);
+                                    DownloadManager.Query q = new DownloadManager.Query();
+                                    q.setFilterById(downloadReference);
 
-                                        Cursor cursor = downloadManager.query(q);
-                                        cursor.moveToFirst();
-                                        int bytes_downloaded = cursor.getInt(cursor
-                                                .getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
-                                        int bytes_total = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                                    Cursor cursor = downloadManager.query(q);
+                                    cursor.moveToFirst();
+                                    int bytes_downloaded = cursor.getInt(cursor
+                                            .getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                                    int bytes_total = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
 
-                                        if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
-                                            downloading = false;
-                                        }
-
-                                        final double dl_progress = (bytes_downloaded / bytes_total) * 100;
-
-                                        runOnUiThread(new Runnable() {
-
-                                            @Override
-                                            public void run() {
-
-                                                bar.setProgress((int) dl_progress);
-
-                                            }
-                                        });
-
-                                        cursor.close();
+                                    if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
+                                        downloading = false;
                                     }
 
+                                    final double dl_progress = (bytes_downloaded / bytes_total) * 100;
+
+                                    runOnUiThread(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+
+                                            bar.setProgress((int) dl_progress);
+
+                                        }
+                                    });
+
+                                    cursor.close();
                                 }
-                            }).start();
+
+                            }
+                        }).start();
 //                                    }
 //                                });
 //                                .setNegativeButton("Remind Later", new DialogInterface.OnClickListener() {
@@ -253,47 +273,11 @@ public class SplashActivity extends AppCompatActivity {
 //                                        // User cancelled the dialog
 //                                    }
 //                                });
-                            //show the alert message
+                        //show the alert message
 //                        builder.create().show();
 //                    }
 
-                        } else {
-                            CountDownTimer mCountDownTimer;
-                            i = 0;
-
-                            bar.setProgress(i);
-                            mCountDownTimer = new CountDownTimer(4000, 500) {
-
-                                @Override
-                                public void onTick(long millisUntilFinished) {
-                                    Log.v("Log_tag", "Tick of Progress" + i + millisUntilFinished);
-                                    i++;
-                                    bar.setProgress(i * 12);
-
-                                }
-
-                                @Override
-                                public void onFinish() {
-                                    //Do what you want
-                                    i++;
-                                    bar.setProgress(i);
-                                    bar.setProgress(100);
-
-                                    Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
-                                    SplashActivity.this.startActivity(mainIntent);
-                                    if (sync) {
-                                        unregisterReceiver(VersionCheckReceiver.this);
-                                        sync = false;
-                                    }
-                                    unregisterReceiver(downloadReceiver);
-                                    SplashActivity.this.finish();
-//
-                                }
-                            };
-                            mCountDownTimer.start();
-                        }
                     } else {
-
                         CountDownTimer mCountDownTimer;
                         i = 0;
 
@@ -317,9 +301,9 @@ public class SplashActivity extends AppCompatActivity {
 
                                 Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
                                 SplashActivity.this.startActivity(mainIntent);
-                                if (sync) {
+                                if (isVCRregistered) {
                                     unregisterReceiver(VersionCheckReceiver.this);
-                                    sync = false;
+                                    isVCRregistered = false;
                                 }
                                 unregisterReceiver(downloadReceiver);
                                 SplashActivity.this.finish();
@@ -327,9 +311,9 @@ public class SplashActivity extends AppCompatActivity {
                             }
                         };
                         mCountDownTimer.start();
-
-
                     }
+
+
                 } catch (Exception e) {
 
                     e.printStackTrace();
@@ -358,9 +342,9 @@ public class SplashActivity extends AppCompatActivity {
 
                             Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
                             SplashActivity.this.startActivity(mainIntent);
-                            if (sync) {
+                            if (isVCRregistered) {
                                 unregisterReceiver(VersionCheckReceiver.this);
-                                sync = false;
+                                isVCRregistered = false;
                             }
                             unregisterReceiver(downloadReceiver);
                             SplashActivity.this.finish();

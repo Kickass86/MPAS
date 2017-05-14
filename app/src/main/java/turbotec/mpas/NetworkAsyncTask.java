@@ -111,7 +111,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 200;   // 200 milliseconds
+            int timeoutMs = 50000;   // 50000 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 
