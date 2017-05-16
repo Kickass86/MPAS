@@ -52,7 +52,7 @@ public class VersionCheck extends IntentService {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 50000;   // 50000 milliseconds
+            int timeoutMs = 2000;   // 50000 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 

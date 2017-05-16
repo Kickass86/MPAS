@@ -62,7 +62,7 @@ public class SendStatusAsyncTask extends AsyncTask {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 200;   // 200 milliseconds
+            int timeoutMs = 2000;   // 200 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 

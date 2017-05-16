@@ -343,6 +343,7 @@ public class MainActivity extends AppCompatActivity {
             cancel = true;
         }
 
+        String s = "";
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
@@ -352,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
             String[] Userdata = {username, password, DeviceID};
             NetworkAsyncTask task = new NetworkAsyncTask(this);
             try {
-                task.execute(Userdata).get();
+                s = task.execute(Userdata).get();
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
@@ -403,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
                 //Error On LogIn
                 Log.w("ERROR", "Wrong Information");
                 Toast.makeText(this.getApplicationContext(),
-                        "Something is wrong, check your connection and username/password", Toast.LENGTH_LONG).show();
+                        "Something is wrong, check your connection and username/password :" + s, Toast.LENGTH_LONG).show();
                 final Intent intent = getIntent();
 //                Thread thread = new Thread() {
 //                    @Override

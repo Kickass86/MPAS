@@ -111,7 +111,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 50000;   // 50000 milliseconds
+            int timeoutMs = 2000;   // 2000 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 
@@ -291,7 +291,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             SOAP_ADDRESS = "https://mpas.migtco.com:3000/Andr/WS.asmx";
         }
 
-        CheckVersion();
+//        CheckVersion();
 
         String username = share.GetUsername();
         String password = share.GetPassword();
@@ -333,6 +333,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             ////
 
             plaintext = new String(Base64.encode(plaintext.getBytes(), Base64.DEFAULT));
+
 //            SoapObject request = new SoapObject("http://mpas.migtco.com/", "CheckUser");
             SoapObject request = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_CHECK);
             PropertyInfo pi = new PropertyInfo();
@@ -352,8 +353,10 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             HttpTransportSE httpTransport = new HttpTransportSE(SOAP_ADDRESS);
 //            Object response = null;
             Object response;
+
 //            httpTransport.call("http://mpas.migtco.com/CheckUser", envelope);
             httpTransport.call(SOAP_ACTION_CHECK, envelope);
+
             response = envelope.getResponse();
 
 
@@ -370,17 +373,22 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
             if (auth.getPropertyCount() > 0)
                 Authresp = auth.getProperty(0).toString();
+            Log.e("Auth response", Authresp);
+
 
             if (token.getPropertyCount() > 0)
                 Tokenresp = token.getProperty(0).toString();
+            Log.e("Token Response", Tokenresp);
+
+            FLag = (Authresp + " : " + Tokenresp);
 
 //            if (message.getPropertyCount() > 0)
 //                Messagesresp = (SoapObject) message.getProperty(0);
 
 
-            if (Authresp.contains("Invalid")) {
+            if (Authresp.contains("Invalid") | Authresp.contains("Error")) {
                 share.SaveActivation(MyContext.getString(R.string.NotActive));
-                FLag = "Invalid";
+                FLag = Authresp;
             }
             if (Authresp.contains("Wait")) {
                 share.SaveActivation(MyContext.getString(R.string.NotActive));
