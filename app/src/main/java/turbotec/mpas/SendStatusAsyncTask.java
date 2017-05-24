@@ -7,7 +7,6 @@ import android.os.AsyncTask;
 import android.util.Base64;
 
 import org.ksoap2.SoapEnvelope;
-import org.ksoap2.SoapFault;
 import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
@@ -19,8 +18,10 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
+//import android.database.Cursor;
+
 /**
- * Created by ZAMANI on 4/9/2017.
+ * Created by ZAMANI on 5/21/2017.
  */
 
 public class SendStatusAsyncTask extends AsyncTask {
@@ -29,12 +30,12 @@ public class SendStatusAsyncTask extends AsyncTask {
     private final Context MyContext;
     private final String ip = "192.168.1.13";
     private final int port = 80;
-    private SharedPreferenceHandler share;
-    private DatabaseHandler db;
-    private SQLiteDatabase database;
+    private final SharedPreferenceHandler share;
+    private final DatabaseHandler db;
+    private final SQLiteDatabase database;
+    private final String OPERATION_NAME_DELIVERED = "Delivered";
     //    private String SOAP_ACTION_CHECK = "CheckUser";
     private String SOAP_ACTION_DELIVERED = "Delivered";
-    private String OPERATION_NAME_DELIVERED = "Delivered";
     private String WSDL_TARGET_NAMESPACE;
     private String SOAP_ADDRESS;
 
@@ -62,7 +63,7 @@ public class SendStatusAsyncTask extends AsyncTask {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 2000;   // 200 milliseconds
+            int timeoutMs = 800;   // 200 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 
@@ -94,7 +95,7 @@ public class SendStatusAsyncTask extends AsyncTask {
         if (isLocalReachable()) {
             SOAP_ACTION_DELIVERED = "http://192.168.1.13/Delivered";
             WSDL_TARGET_NAMESPACE = "http://192.168.1.13/";
-            SOAP_ADDRESS = "http://192.168.1.13/Andr/WS.asmx";
+            SOAP_ADDRESS = "http://192.168.1.13/Andr/WSLocal.asmx";
         } else {
             SOAP_ACTION_DELIVERED = "https://mpas.migtco.com:3000/Delivered";
             WSDL_TARGET_NAMESPACE = "https://mpas.migtco.com:3000/";
@@ -113,6 +114,7 @@ public class SendStatusAsyncTask extends AsyncTask {
 
 
             plaintext = new String(Base64.encode(plaintext.getBytes(), Base64.DEFAULT));
+            plaintext = plaintext.replaceAll("\n", "");
 
 //            SoapObject request = new SoapObject("http://192.168.1.13/", "Delivered");
             SoapObject request = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
@@ -138,33 +140,29 @@ public class SendStatusAsyncTask extends AsyncTask {
             httpTransport.call(SOAP_ACTION_DELIVERED, envelope);
             response = envelope.getResponse();
 
-            if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
-
-                ContentValues values = new ContentValues();
-                values.put("SendDelivered", true);
-                String[] MIDs = IDs.split(";");
-                for (int i = 0; i < MIDs.length; i++) {
-                    database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
-                }
-                database.close();
-            } else if (response.toString().contains(MyContext.getString(R.string.Seen))) {
+            if (response.toString().contains(MyContext.getString(R.string.Seen))) {
 
                 ContentValues values = new ContentValues();
                 values.put("SendSeen", true);
                 values.put("SendDelivered", true);
                 String[] MIDs = IDs.split(";");
-                for (int i = 0; i < MIDs.length; i++) {
-                    database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
+                for (String MID : MIDs) {
+                    database.update("Messages", values, "MessageID  = ?", new String[]{MID});
+                }
+                database.close();
+            } else if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
+
+                ContentValues values = new ContentValues();
+                values.put("SendDelivered", true);
+                String[] MIDs = IDs.split(";");
+                for (String MID : MIDs) {
+                    database.update("Messages", values, "MessageID  = ?", new String[]{MID});
                 }
                 database.close();
             }
 
-        } catch (SoapFault soapFault) {
+        } catch (XmlPullParserException | IOException soapFault) {
             soapFault.printStackTrace();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
 

@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -14,26 +15,51 @@ import android.widget.TextView;
 
 import java.util.concurrent.ExecutionException;
 
+//import android.app.IntentService;
+//import android.content.Intent;
+//import android.support.annotation.Nullable;
+
 public class Message_Detail_Activity extends AppCompatActivity {
 
     private static DatabaseHandler db;
-    final Context context = this;
-    SQLiteDatabase database;
+    private final Context context = this;
+    //    SQLiteDatabase database;
     private Button DelBut;
     private Integer ID = 1;
+//    private String[] arg;
 
     public Message_Detail_Activity() {
 
-        db = DatabaseHandler.getInstance(this);
-
-
     }
+
+
+//    public class SaveState extends IntentService {
+//
+//
+//        public SaveState() {
+//            super("State Save in SQLite");
+//        }
+//
+//        @Override
+//        protected void onHandleIntent(@Nullable Intent intent) {
+//
+//            SQLiteDatabase database = db.getWritableDatabase();
+//
+//            ContentValues values = new ContentValues();
+//            values.put("Seen", true);
+////            database = db.getWritableDatabase();
+//            database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(ID)});
+//            database.close();
+//
+//        }
+//    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.message_detail_layout);
-
+        db = DatabaseHandler.getInstance(this);
         Bundle b = getIntent().getExtras();
         String Title = "";
         String Body = "";
@@ -61,11 +87,35 @@ public class Message_Detail_Activity extends AppCompatActivity {
                 i2.setImageResource(R.mipmap.critical);
             }
             if (!isSeen) {
-                ContentValues values = new ContentValues();
-                values.put("Seen", true);
-                database = db.getWritableDatabase();
-                database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(ID)});
-                database.close();
+
+//                Intent in = new Intent(this, SaveState.class);
+//                startService(in);
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        SQLiteDatabase database = db.getWritableDatabase();
+
+                        ContentValues values = new ContentValues();
+                        values.put("Seen", true);
+                        database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(ID)});
+//                        database.close();
+
+                    }
+
+
+                }).start();
+
+
+//                DatabaseUpdateOperation d = new DatabaseUpdateOperation();
+//                try {
+//                    d.execute("").get();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                } catch (ExecutionException e) {
+//                    e.printStackTrace();
+//                }
             }
         }
 
@@ -78,9 +128,7 @@ public class Message_Detail_Activity extends AppCompatActivity {
 
             try {
                 Object d = taskstate.execute(data).get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }
@@ -97,9 +145,16 @@ public class Message_Detail_Activity extends AppCompatActivity {
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
 
-                                SQLiteDatabase database = db.getWritableDatabase();
-                                database.delete("Messages", "MessageID  = ?", new String[]{String.valueOf(ID)});
-                                database.close();
+//                                SQLiteDatabase database = db.getWritableDatabase();
+//                                arg = new String[]{String.valueOf(ID)};
+//                                database.delete("Messages", "MessageID  = ?", new String[]{String.valueOf(ID)});
+//                                database.close();
+                                DatabaseDeleteOperation ff = new DatabaseDeleteOperation();
+                                try {
+                                    ff.execute("").get();
+                                } catch (InterruptedException | ExecutionException e) {
+                                    e.printStackTrace();
+                                }
                                 finish();
 
                             }
@@ -123,5 +178,70 @@ public class Message_Detail_Activity extends AppCompatActivity {
 
 
     }
+
+
+//    private class DatabaseUpdateOperation extends AsyncTask<String, String, String> {
+//
+////        @Override
+////        protected void onProgressUpdate(String... values) {
+////            super.onProgressUpdate(values);
+////
+////        }
+//
+//        @Override
+//        protected String doInBackground(String... params) {
+//
+////            String tablename = params[0];
+////            String WhereClause = params[1];
+//
+//            SQLiteDatabase database = db.getWritableDatabase();
+//
+//            ContentValues values = new ContentValues();
+//            values.put("Seen", true);
+////            database = db.getWritableDatabase();
+//            database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(ID)});
+//            database.close();
+//
+//            return null;
+//        }
+//
+////        @Override
+////        protected void onPostExecute(String result) {
+////            super.onPostExecute(result);
+////            // do something with data here-display it or send to mainactivity
+////        }
+//    }
+
+
+    private class DatabaseDeleteOperation extends AsyncTask<String, String, String> {
+
+//        @Override
+//        protected void onProgressUpdate(String... values) {
+//            super.onProgressUpdate(values);
+//
+//        }
+
+        @Override
+        protected String doInBackground(String... params) {
+
+//            String tablename = params[0];
+//            String WhereClause = params[1];
+
+            SQLiteDatabase database = db.getWritableDatabase();
+//            arg = new String[]{String.valueOf(ID)};
+            database.delete("Messages", "MessageID  = ?", new String[]{String.valueOf(ID)});
+            database.close();
+            finish();
+
+            return null;
+        }
+
+//        @Override
+//        protected void onPostExecute(String result) {
+//            super.onPostExecute(result);
+//            // do something with data here-display it or send to mainactivity
+//        }
+    }
+
 
 }

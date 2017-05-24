@@ -13,8 +13,6 @@ class MessageObject {
     private boolean SendSeen;
     private String MessageBody;
     private String InsertDate;
-
-
     private boolean Critical;
 
 
@@ -30,12 +28,21 @@ class MessageObject {
 
     }
 
+
     MessageObject() {
 
     }
 
+    public void setSendDelivered(boolean sendDelivered) {
+        SendDelivered = sendDelivered;
+    }
+
     public boolean isSendSeen() {
         return SendSeen;
+    }
+
+    public void setSendSeen(boolean sendSeen) {
+        SendSeen = sendSeen;
     }
 
     public boolean getCritical() {

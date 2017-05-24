@@ -22,7 +22,7 @@ import java.io.File;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private final int SPLASH_DISPLAY_LENGTH = 3000;
+    //    private final int SPLASH_DISPLAY_LENGTH = 3000;
     private final String LOG_TAG = "AppUpgrade";
     private ProgressBar bar;
     private String appURI = "";
@@ -33,9 +33,8 @@ public class SplashActivity extends AppCompatActivity {
     private Uri Download_Uri;
     private VersionCheckReceiver receiver;
     private long downloadReference;
-    private DownloadManager downloadManager;
     //broadcast receiver to get notification about ongoing downloads
-    private BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -94,7 +93,7 @@ public class SplashActivity extends AppCompatActivity {
             }
         }
     };
-
+    private DownloadManager downloadManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,13 +103,14 @@ public class SplashActivity extends AppCompatActivity {
         bar = (ProgressBar) findViewById(R.id.progressBar);
 
         PackageInfo pInfo = null;
+        String version = "1";
         try {
             pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            version = pInfo.versionName;
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        //get the app version Name for display
-        String version = pInfo.versionName;
+
         //get the app version Code for checking
         versionCode = pInfo.versionCode;
         //display the current version in a TextView
@@ -354,7 +354,7 @@ public class SplashActivity extends AppCompatActivity {
                     mCountDownTimer.start();
 
 
-                } finally {
+                }
 
 
 //                new Handler().postDelayed(new Runnable() {
@@ -367,7 +367,7 @@ public class SplashActivity extends AppCompatActivity {
 //                    }
 //                }, SPLASH_DISPLAY_LENGTH);
 
-                }
+
             }
 
         }

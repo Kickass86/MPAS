@@ -27,8 +27,8 @@ public class VersionCheck extends IntentService {
     public static final String REQUEST_DOWNLOAD = "myDownloadRequest";
     private final String ip = "192.168.1.13";
     private final int port = 80;
-    URL url = null;
-    private SharedPreferenceHandler share;
+    private final SharedPreferenceHandler share;
+    private URL url = null;
     private String requestString;
     private String downloadString;
 
@@ -52,7 +52,7 @@ public class VersionCheck extends IntentService {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 2000;   // 50000 milliseconds
+            int timeoutMs = 800;   // 200 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 
@@ -112,8 +112,9 @@ public class VersionCheck extends IntentService {
 
                     while ((line = bufferedReader.readLine()) != null)
                         s += line;
+                    is.close();
                 }
-                is.close();
+
             }
             c.disconnect();
             if (!(s.contains("Invalid") | s.contains("Error") | s.contains("Unable") | (s.contains("unexpected")))) {

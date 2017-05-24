@@ -19,7 +19,6 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Base64;
 import android.util.Log;
 
-import org.json.JSONObject;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
@@ -27,19 +26,20 @@ import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.w3c.dom.Document;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.List;
 
-import javax.crypto.Cipher;
+//import org.json.JSONObject;
+//import java.net.MalformedURLException;
+//import java.security.KeyPair;
+//import java.security.KeyPairGenerator;
+//import java.security.PrivateKey;
+//import java.security.PublicKey;
+//import java.util.ArrayList;
+
+//import javax.crypto.Cipher;
 
 //import com.android.volley.Request;
 //import com.android.volley.RequestQueue;
@@ -55,22 +55,21 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     private final Context MyContext;
     private final String ip = "192.168.1.13";
     private final int port = 80;
-    private KeyPairGenerator kpg;
-    private KeyPair kp;
-    private PublicKey publicKey;
-    private PrivateKey privateKey;
-    private byte[] encryptedBytes, decryptedBytes;
-    private Cipher cipher, cipher1;
-    private String encrypted, decrypted;
-    private DatabaseHandler db;
-    private SharedPreferenceHandler share;
+    //    private KeyPairGenerator kpg;
+//    private KeyPair kp;
+//    private PublicKey publicKey;
+//    private PrivateKey privateKey;
+//    private byte[] encryptedBytes, decryptedBytes;
+//    private Cipher cipher, cipher1;
+//    private String encrypted, decrypted;
+    private final DatabaseHandler db;
+    private final SharedPreferenceHandler share;
+    private final String OPERATION_NAME_CHECK;
+    private final String OPERATION_NAME_DELIVERED;
     private SQLiteDatabase database;
-    private String[] MIDs = new String[10000];
+    //    private final String[] MIDs = new String[10000];
     private String SOAP_ACTION_CHECK;
     private String SOAP_ACTION_DELIVERED;
-    private String OPERATION_NAME_CHECK;
-    private String OPERATION_NAME_DELIVERED;
-
     private boolean isCritical = false;
     //    private  final String SOAP_ACTION = "http://192.168.1.13/Delivered";
 //    private  final String OPERATION_NAME = "Delivered";
@@ -87,10 +86,11 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     private int ID;
     private String FLag = "Invalid";
     private Document D;
-    private ArrayList<JSONObject> ans;
+
+    //    private final ArrayList<JSONObject> ans;
     public NetworkAsyncTask(Context context) {
 //        WeakReference<MainActivity> myActivity = new WeakReference<>(activity);
-        ans = new ArrayList<>();
+//        ans = new ArrayList<>();
         MyContext = context;
         db = DatabaseHandler.getInstance(MyContext);
         share = SharedPreferenceHandler.getInstance(MyContext);
@@ -111,7 +111,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 2000;   // 2000 milliseconds
+            int timeoutMs = 800;   // 200 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 
@@ -176,102 +176,6 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     }
 
 
-    private void CheckVersion() {
-
-
-//        try
-//        {
-//            URL url = new URL("http://192.168.1.13/Download/FileDownload.ashx?Idfile=&TypeDoc=&");
-//            String message = "Code";
-//
-//            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-//
-//            connection.setDoOutput(true);
-//
-//            connection.setRequestMethod("GET");
-//
-//
-//            OutputStreamWriter writer = new OutputStreamWriter(
-//                    connection.getOutputStream());
-//
-//
-//            writer.write("message=" + message);
-//
-//
-//            writer.close();
-//
-//            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-//                // OK
-//
-//                Log.i("Response Message", connection.getContent().toString());
-//                InputStream is = connection.getInputStream();
-
-//                Drawable d = Drawable.createFromStream(is, "imagename");
-//                Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
-//                FileOutputStream out = openFileOutput("jjjjj", Context.MODE_PRIVATE);
-//                bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
-//            } else {
-//                // Server returned HTTP error code.
-//            }
-//        } catch (MalformedURLException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        Log.v("Intent Service", "Check Request");
-//        String responseMessage = "";
-//        String value = "Value1=" + share.GetToken() + ",Value2=" + share.GetDeviceID();
-//        requestString = requestString + new String(Base64.encode(value.getBytes(), Base64.DEFAULT));
-//
-//        try {
-//
-//            url = new URL(requestString);
-//            HttpURLConnection c = (HttpURLConnection) url.openConnection();
-//            c.setRequestMethod("GET");
-//            c.setDoOutput(true);
-//            c.connect();
-//
-////            String PATH = Environment.getExternalStorageDirectory() + "/download/";
-//            String PATH = Environment.getDataDirectory() + "/download/";
-//            File file = new File(PATH);
-//            file.mkdirs();
-//            File outputFile = new File(file, "app.apk");
-//            FileOutputStream fos = new FileOutputStream(outputFile);
-//
-//            InputStream is = c.getInputStream();
-//
-//            byte[] buffer = new byte[1024];
-//            int len1 = 0;
-//            while ((len1 = is.read(buffer)) != -1) {
-//                fos.write(buffer, 0, len1);
-//            }
-//            fos.close();
-//            is.close();//till here, it works fine - .apk is download to my sdcard in download file
-//
-//            Intent promptInstall = new Intent(Intent.ACTION_VIEW)
-//                    .setData(Uri.parse(PATH + "app.apk"))
-//                    .setType("application/android.com.app");
-//            startActivity(promptInstall);//installation is not working
-//
-//
-//        } catch (IOException e) {
-//            Log.w("HTTP3:", e);
-//            responseMessage = e.getMessage();
-//        } catch (Exception e) {
-//            Log.w("HTTP4:", e);
-//            responseMessage = e.getMessage();
-//        }
-//
-//
-//        Intent broadcastIntent = new Intent();
-//        broadcastIntent.setAction(SplashActivity.VersionCheckReceiver.PROCESS_RESPONSE);
-//        broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-//        broadcastIntent.putExtra(RESPONSE_MESSAGE, responseMessage);
-//        sendBroadcast(broadcastIntent);
-
-
-    }
-
     @Override
     protected String doInBackground(Object... params) {
 
@@ -283,7 +187,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             SOAP_ACTION_CHECK = "http://192.168.1.13/CheckUser";
             SOAP_ACTION_DELIVERED = "http://192.168.1.13/Delivered";
             WSDL_TARGET_NAMESPACE = "http://192.168.1.13/";
-            SOAP_ADDRESS = "http://192.168.1.13/Andr/WS.asmx";
+            SOAP_ADDRESS = "http://192.168.1.13/Andr/WSLocal.asmx";
         } else {
             SOAP_ACTION_CHECK = "https://mpas.migtco.com:3000/CheckUser";
             SOAP_ACTION_DELIVERED = "https://mpas.migtco.com:3000/Delivered";
@@ -296,12 +200,13 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
         String username = share.GetUsername();
         String password = share.GetPassword();
         String DeviceID = share.GetDeviceID();
+        String Token = share.GetToken();
 
 //        Object username = userDetails[0];
 //        Object password = userDetails[1];
 //        Object DeviceID = userDetails[2];
 //        Object Token    = userDetails[3];
-        String Token = share.GetToken();
+
         NotificationCompat.Builder mBuilder;
         NotificationManager mNotificationManager =
                 (NotificationManager) MyContext.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -331,9 +236,11 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 //            }
 
             ////
+//            plaintext = "value1=fotoohi,value2=F@t1234,value3=00000000-695c-bdb0-0000-00002d11b9dd,value4=";
 
             plaintext = new String(Base64.encode(plaintext.getBytes(), Base64.DEFAULT));
 
+            plaintext = plaintext.replaceAll("\n", "");
 //            SoapObject request = new SoapObject("http://mpas.migtco.com/", "CheckUser");
             SoapObject request = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_CHECK);
             PropertyInfo pi = new PropertyInfo();
@@ -429,7 +336,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                 }
                 New = true;
                 IDs = IDs + Message.getProperty(0).toString() + ";";
-                MIDs[index] = Message.getProperty(0).toString();
+//                MIDs[index] = Message.getProperty(0).toString();
 
 
                 isCritical = Boolean.valueOf(Message.getProperty(4).toString());
@@ -486,6 +393,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
 
                 plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
+                plaintext = plaintext.replaceAll("\n", "");
 
                 SoapObject requestDel = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
                 PropertyInfo Pinf = new PropertyInfo();
@@ -524,8 +432,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                     ContentValues values = new ContentValues();
                     values.put("SendDelivered", true);
                     String[] MIDs = IDs.split(";");
-                    for (int i = 0; i < MIDs.length; i++) {
-                        database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
+                    for (String MID : MIDs) {
+                        database.update("Messages", values, "MessageID  = ?", new String[]{MID});
                     }
 
                 } else if (response.toString().contains(MyContext.getString(R.string.Seen))) {
@@ -534,8 +442,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                     values.put("SendSeen", true);
                     values.put("SendDelivered", true);
                     String[] MIDs = IDs.split(";");
-                    for (int i = 0; i < MIDs.length; i++) {
-                        database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
+                    for (String MID : MIDs) {
+                        database.update("Messages", values, "MessageID  = ?", new String[]{MID});
                     }
                 }
 
@@ -570,6 +478,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
 
                 plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
+                plaintext = plaintext.replaceAll("\n", "");
 
                 SoapObject requestDel = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
                 PropertyInfo Pinf = new PropertyInfo();
@@ -594,8 +503,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                     ContentValues values = new ContentValues();
                     values.put("SendDelivered", true);
                     String[] MIDs = IDs.split(";");
-                    for (int i = 0; i < MIDs.length; i++) {
-                        database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
+                    for (String MID : MIDs) {
+                        database.update("Messages", values, "MessageID  = ?", new String[]{MID});
                     }
 
                 }
@@ -626,6 +535,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
 
                 plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
+                plaintext = plaintext.replaceAll("\n", "");
 
                 SoapObject requestDel = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
                 PropertyInfo Pinf = new PropertyInfo();
@@ -651,8 +561,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                     values.put("SendSeen", true);
                     values.put("SendDelivered", true);
                     String[] MIDs = IDs.split(";");
-                    for (int i = 0; i < MIDs.length; i++) {
-                        database.update("Messages", values, "MessageID  = ?", new String[]{MIDs[i]});
+                    for (String MID : MIDs) {
+                        database.update("Messages", values, "MessageID  = ?", new String[]{MID});
                     }
 
                 }
@@ -661,10 +571,6 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             database.close();
 
 
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception exception) {
             exception.printStackTrace();
         }

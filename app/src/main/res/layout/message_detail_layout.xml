@@ -6,9 +6,8 @@
 
     <TextView
         android:id="@+id/titledetail2"
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignRight="@+id/button2"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dip"
         android:singleLine="false"
@@ -32,15 +31,25 @@
 
     <!--android:layout_alignParentRight="true"-->
 
+    <ImageView
+        android:id="@+id/dummyImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/statedetail2"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="8dip"
+        android:layout_weight="0.5"
+        android:textSize="16sp" />
 
 
     <ImageView
-        android:id="@+id/statedetail2"
+        android:id="@id/statedetail2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/titledetail2"
+        android:layout_below="@id/dummyImage"
         android:layout_marginRight="8dip"
         android:layout_marginTop="10dp"
         android:layout_weight="0.5"
@@ -71,11 +80,12 @@
         android:textSize="16sp" />
 
     <Button
-        android:id="@id/button2"
+        android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/bodydetail2"
-        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dip"
         android:layout_marginTop="10dp"
         android:text="Delete" />
 

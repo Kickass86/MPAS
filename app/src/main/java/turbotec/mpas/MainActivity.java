@@ -1,6 +1,7 @@
 package turbotec.mpas;
 
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -8,12 +9,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,19 +33,21 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
+//import android.graphics.Color;
+
 //import android.net.ConnectivityManager;
 //import android.net.NetworkInfo;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    public static DatabaseHandler db;
-    private static int numrun = 0;
+    private static DatabaseHandler db;
+    //    private static int numrun = 0;
     private static List<MessageObject> MESSAGES;
     //    public static SQLiteDatabase database;
-    private int Message_Number = 0;
+//    private int Message_Number = 0;
     //    private SharedPreferenceHandler sp;
-    private SharedPreferenceHandler share;
+    private final SharedPreferenceHandler share;
 
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -57,8 +62,14 @@ public class MainActivity extends AppCompatActivity {
 //            try {
 //                task.execute(Userdata).get();
             if (share.GetStatus().equals(getString(R.string.OK))) {
-                GetMessagesfromDB();
-                ShowMessages();
+//                GetMessagesfromDB();
+//                ShowMessages();
+                GetMessages oo = new GetMessages();
+                try {
+                    oo.execute("").get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
             }
 //            } catch (ExecutionException | InterruptedException ei) {
 //                ei.printStackTrace();
@@ -98,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
         MESSAGES = new ArrayList<>();
         db = DatabaseHandler.getInstance(this);
         share = SharedPreferenceHandler.getInstance(this);
+
 
     }
     //    private String Name;
@@ -150,50 +162,51 @@ public class MainActivity extends AppCompatActivity {
 //        return true;
 //    }
 
-    private static void GetMessagesfromDB() {
 
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-
-
-//        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
-        MESSAGES = new ArrayList<>();
-        SQLiteDatabase database = db.getWritableDatabase();
-        Cursor cursor = database.rawQuery("SELECT * " +
-                "FROM Messages ORDER BY Critical DESC, MessageID DESC;", null);
-
-        // looping through all rows and adding to list
-        try {
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    do {
-                        MessageObject MObj = new MessageObject();
-                        MObj.setMessageID(cursor.getInt(0));
-                        MObj.setMessageTitle(cursor.getString(1));
-                        MObj.setMessageBody(cursor.getString(2));
-                        MObj.setInsertDate(cursor.getString(3));
-                        MObj.setCritical("1".equals(cursor.getString(4)));
-                        MObj.setSeen("1".equals(cursor.getString(5)));
-
-                        MESSAGES.add(MObj);
-                    } while (cursor.moveToNext());
-                }
-                cursor.close();
-            }
-
-//                    } catch (Exception e) {
-//                        e.getStackTrace();
-//                    }
-        } catch (Exception e) {
-            e.printStackTrace();
-                }
+//    private static void GetMessagesfromDB() {
+//
+////        new Thread(new Runnable() {
+////            @Override
+////            public void run() {
+////                try {
+//
+//
+////        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
+//        MESSAGES = new ArrayList<>();
+//        SQLiteDatabase database = db.getWritableDatabase();
+//        Cursor cursor = database.rawQuery("SELECT * " +
+//                "FROM Messages ORDER BY Critical DESC, MessageID DESC;", null);
+//
+//        // looping through all rows and adding to list
+//        try {
+//            if (cursor != null) {
+//                if (cursor.moveToFirst()) {
+//                    do {
+//                        MessageObject MObj = new MessageObject();
+//                        MObj.setMessageID(cursor.getInt(0));
+//                        MObj.setMessageTitle(cursor.getString(1));
+//                        MObj.setMessageBody(cursor.getString(2));
+//                        MObj.setInsertDate(cursor.getString(3));
+//                        MObj.setCritical("1".equals(cursor.getString(4)));
+//                        MObj.setSeen("1".equals(cursor.getString(5)));
+//
+//                        MESSAGES.add(MObj);
+//                    } while (cursor.moveToNext());
+//                }
+//                cursor.close();
 //            }
-//        }).start();
-
-
-    }
+//
+////                    } catch (Exception e) {
+////                        e.getStackTrace();
+////                    }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//                }
+////            }
+////        }).start();
+//
+//
+//    }
 
     @Override
     protected void onDestroy() {
@@ -209,20 +222,26 @@ public class MainActivity extends AppCompatActivity {
 //        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 //        nMgr.cancelAll();
         if (share.GetStatus().equals(getString(R.string.OK))) {
-            GetMessagesfromDB();
-            ShowMessages();
+//            GetMessagesfromDB();
+//            ShowMessages();
+            GetMessages oo = new GetMessages();
+            try {
+                oo.execute("").get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    /**
-     * @param savedInstanceState
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.waiting_layout);
         registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancelAll();
 
 //        registerReceiver(NotifyReceiver, new IntentFilter("Notification fire"));
 //        if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
@@ -256,8 +275,14 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
                 Log.i("Alarm", "Set");
                 if (share.GetActivation().equals(getString(R.string.Active))) {
-                    GetMessagesfromDB();
-                    ShowMessages();
+//                    GetMessagesfromDB();
+//                    ShowMessages();
+                    GetMessages oo = new GetMessages();
+                    try {
+                        oo.execute("").get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -279,8 +304,14 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
             Log.i("Alarm", "Set");
             if (share.GetActivation().equals(getString(R.string.Active))) {
-                GetMessagesfromDB();
-                ShowMessages();
+//                GetMessagesfromDB();
+//                ShowMessages();
+                GetMessages oo = new GetMessages();
+                try {
+                    oo.execute("").get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
             }
         } else {
             setContentView(R.layout.login_layout);
@@ -293,6 +324,19 @@ public class MainActivity extends AppCompatActivity {
                     UsernameView = (EditText) findViewById(R.id.editText2);
                     PasswordView = (EditText) findViewById(R.id.editText);
                     Button registerButton = (Button) findViewById(R.id.button);
+                    PasswordView.setOnKeyListener(new View.OnKeyListener() {
+
+                        @Override
+                        public boolean onKey(View v, int keyCode, KeyEvent event) {
+                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
+                                String Username = UsernameView.getText().toString();
+                                String Password = PasswordView.getText().toString();
+                                String DeviceID = getUniquePsuedoID();
+                                attemptLogin(Username, Password, DeviceID);
+                            }
+                            return false;
+                        }
+                    });
 
 
                     registerButton.setOnClickListener(new View.OnClickListener() {
@@ -321,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void attemptLogin(String username, String password, String DeviceID) {
 
-        String result = getString(R.string.Invalid);
+//        String result = getString(R.string.Invalid);
 
         UsernameView.setError(null);
         PasswordView.setError(null);
@@ -357,7 +401,8 @@ public class MainActivity extends AppCompatActivity {
             } catch (ExecutionException | InterruptedException ei) {
                 ei.printStackTrace();
             }
-            if (share.GetStatus().equals(getString(R.string.OK))) {
+            String state = share.GetStatus();
+            if (state.equals(getString(R.string.OK))) {
                 //set Repeating Alarm
 //                setContentView(R.layout.activity_main_logged_in);
 
@@ -374,15 +419,22 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
                 Log.i("Alarm", "Set");
                 if (share.GetActivation().equals(getString(R.string.Active))) {
-                    GetMessagesfromDB();
-                    ShowMessages();
+//                    GetMessagesfromDB();
+//                    ShowMessages();
+                    GetMessages oo = new GetMessages();
+                    try {
+                        oo.execute("").get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } else if (share.GetStatus().equals(getString(R.string.Wait))) {
+            } else if (state.equals(getString(R.string.Wait))) {
 
+                setContentView(R.layout.wait_for_activation_layout);
                 share.SaveDeviceID(DeviceID);
                 share.SaveLoginDetails(username, password);
 //                share.SaveActivation(getString(R.string.NotActive));
-                setContentView(R.layout.wait_for_activation_layout);
+
 
                 Intent alarmIntent = new Intent(this, AlarmReceiver.class);
                 alarmIntent.setAction("Alarm");
@@ -435,7 +487,7 @@ public class MainActivity extends AppCompatActivity {
 
         List<String> Mlist = new ArrayList<>(); //Messages List
         List<String> Tlist = new ArrayList<>(); //Title List
-        List<String> Dlist = new ArrayList<>(); //Date List
+//        List<String> Dlist = new ArrayList<>(); //Date List
         List<Boolean> SList = new ArrayList<>(); //is Seen
         List<Integer> IList = new ArrayList<>(); //Message ID
         List<Boolean> CList = new ArrayList<>(); //Critical
@@ -445,13 +497,13 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < MESSAGES.size(); i++) {
             Mlist.add(MESSAGES.get(i).getMessageBody());
             Tlist.add(MESSAGES.get(i).getMessageTitle());
-            Dlist.add(MESSAGES.get(i).getInsertDate());
+//            Dlist.add(MESSAGES.get(i).getInsertDate());
             SList.add(MESSAGES.get(i).isSeen());
             IList.add(MESSAGES.get(i).getMessageID());
             CList.add(MESSAGES.get(i).getCritical());
             SSList.add(MESSAGES.get(i).isSendSeen());
         }
-        Message_Number = MESSAGES.size();
+//        Message_Number = MESSAGES.size();
 //        if (MESSAGES.isEmpty()) {
             TextView emptyText = (TextView) findViewById(android.R.id.empty);
             lv.setEmptyView(emptyText);
@@ -469,21 +521,70 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private class GetMessages extends AsyncTask<String, String, String> {
+
+
+        @Override
+        protected String doInBackground(String... params) {
+
+
+            MESSAGES = new ArrayList<>();
+            SQLiteDatabase database = db.getWritableDatabase();
+            Cursor cursor = database.rawQuery("SELECT * " +
+                    "FROM Messages ORDER BY Critical DESC, MessageID DESC;", null);
+
+            // looping through all rows and adding to list
+            try {
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        do {
+                            MessageObject MObj = new MessageObject();
+                            MObj.setMessageID(cursor.getInt(0));
+                            MObj.setMessageTitle(cursor.getString(1));
+                            MObj.setMessageBody(cursor.getString(2));
+                            MObj.setInsertDate(cursor.getString(3));
+                            MObj.setCritical("1".equals(cursor.getString(4)));
+                            MObj.setSeen("1".equals(cursor.getString(5)));
+                            MObj.setSendDelivered("1".equals(cursor.getString(6)));
+                            MObj.setSendSeen("1".equals(cursor.getString(7)));
+
+                            MESSAGES.add(MObj);
+                        } while (cursor.moveToNext());
+                    }
+                    cursor.close();
+                }
+
+//                    } catch (Exception e) {
+//                        e.getStackTrace();
+//                    }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            ShowMessages();
+        }
+    }
 
     public class CustomAdapter extends BaseAdapter {
+        final Context context;
         List<String> Titles;
         List<String> Bodies;
         List<Boolean> isSeen;
         List<Integer> IList;
         List<Boolean> CList;
         List<Boolean> SSList;
-        Context context;
-
         private LayoutInflater inflater = null;
 
         public CustomAdapter(MainActivity mainActivity, List<String> MessagesTitle, List<String> MessagesBody, List<Boolean> isSeen, List<Integer> IList, List<Boolean> CList, List<Boolean> SSList) {
 
-            // TODO Auto-generated constructor stub
+
             context = mainActivity;
             Titles = MessagesTitle;
             Bodies = MessagesBody;
@@ -539,6 +640,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     // TODO Auto-generated method stub
 //                    Toast.makeText(context, "You Clicked " + Titles.get(position), Toast.LENGTH_LONG).show();
+                    rowView.setBackgroundColor(context.getResources().getColor(R.color.SelectColor1));
                     Intent showActivity = new Intent(MainActivity.this, Message_Detail_Activity.class);
                     Bundle bundle = new Bundle();
                     bundle.putString(getString(R.string.Title), Titles.get(position));
