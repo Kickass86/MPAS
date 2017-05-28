@@ -29,6 +29,7 @@ public class SplashActivity extends AppCompatActivity {
     private File myFile;
     private int i = 0;
     private boolean isVCRregistered = false;
+    private boolean isDRRregistered = false;
     private int versionCode;
     private Uri Download_Uri;
     private VersionCheckReceiver receiver;
@@ -69,7 +70,7 @@ public class SplashActivity extends AppCompatActivity {
 //                                        "application/vnd.android.package-archive");
 //                    installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
 //                                        downloadManager.getMimeTypeForDownloadedFile(downloadReference));
-                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            installIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
                             startActivity(installIntent);
 
@@ -128,6 +129,7 @@ public class SplashActivity extends AppCompatActivity {
         //Broadcast receiver for the download manager
         IntentFilter filter2 = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
         registerReceiver(downloadReceiver, filter2);
+        isDRRregistered = true;
 
         Intent in = new Intent(this, VersionCheck.class);
         startService(in);
@@ -145,6 +147,11 @@ public class SplashActivity extends AppCompatActivity {
 //        unregisterReceiver(downloadReceiver);
         if (isVCRregistered) {
             unregisterReceiver(receiver);
+            isVCRregistered = false;
+        }
+        if (isDRRregistered) {
+            unregisterReceiver(downloadReceiver);
+            isDRRregistered = false;
         }
         super.onDestroy();
     }
@@ -180,7 +187,7 @@ public class SplashActivity extends AppCompatActivity {
                             installIntent.setDataAndType(Uri.fromFile(myFile),
                                     "application/vnd.android.package-archive");
 
-                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            installIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
                             startActivity(installIntent);
 
@@ -300,12 +307,16 @@ public class SplashActivity extends AppCompatActivity {
                                 bar.setProgress(100);
 
                                 Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
+                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                                 SplashActivity.this.startActivity(mainIntent);
                                 if (isVCRregistered) {
                                     unregisterReceiver(VersionCheckReceiver.this);
                                     isVCRregistered = false;
                                 }
-                                unregisterReceiver(downloadReceiver);
+                                if (isDRRregistered) {
+                                    unregisterReceiver(downloadReceiver);
+                                    isDRRregistered = false;
+                                }
                                 SplashActivity.this.finish();
 //
                             }
@@ -341,12 +352,16 @@ public class SplashActivity extends AppCompatActivity {
                             bar.setProgress(100);
 
                             Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
+                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                             SplashActivity.this.startActivity(mainIntent);
                             if (isVCRregistered) {
                                 unregisterReceiver(VersionCheckReceiver.this);
                                 isVCRregistered = false;
                             }
-                            unregisterReceiver(downloadReceiver);
+                            if (isDRRregistered) {
+                                unregisterReceiver(downloadReceiver);
+                                isDRRregistered = false;
+                            }
                             SplashActivity.this.finish();
 //
                         }

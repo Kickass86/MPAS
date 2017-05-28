@@ -13,8 +13,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.concurrent.ExecutionException;
-
 //import android.app.IntentService;
 //import android.content.Intent;
 //import android.support.annotation.Nullable;
@@ -126,11 +124,7 @@ public class Message_Detail_Activity extends AppCompatActivity {
 
             SendStatusAsyncTask taskstate = new SendStatusAsyncTask(this);
 
-            try {
-                Object d = taskstate.execute(data).get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+            taskstate.execute(data);
         }
         DelBut = (Button) findViewById(R.id.button2);
 
@@ -150,11 +144,7 @@ public class Message_Detail_Activity extends AppCompatActivity {
 //                                database.delete("Messages", "MessageID  = ?", new String[]{String.valueOf(ID)});
 //                                database.close();
                                 DatabaseDeleteOperation ff = new DatabaseDeleteOperation();
-                                try {
-                                    ff.execute("").get();
-                                } catch (InterruptedException | ExecutionException e) {
-                                    e.printStackTrace();
-                                }
+                                ff.execute("");
                                 finish();
 
                             }

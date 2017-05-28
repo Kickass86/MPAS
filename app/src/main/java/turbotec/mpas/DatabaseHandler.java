@@ -82,6 +82,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
 
+    //TODO: Check if SendDelivered/SendSeen is working properly
     public int unSend(Context MyContext) {
 
         DatabaseHandler d = DatabaseHandler.getInstance(MyContext);

@@ -168,10 +168,11 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
     protected void onPostExecute(String b) {
         // dismiss progress dialog and update ui
         Log.d("SQLite", "Begin to Show");
-        if ((New) & (isAppForeground(MyContext))) {
+        if (isAppForeground(MyContext)) {
             MyContext.sendBroadcast(new Intent("Alarm fire"));
         }
 //        ShowMessages(GetMessagesfromDB());
+//        UpdateUI();
 
     }
 
@@ -324,8 +325,8 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
                 temp = new MessageObject(
                         Integer.valueOf(Message.getProperty(0).toString()),
-                        Message.getProperty(1).toString(),
-                        Message.getProperty(2).toString(),
+                        Message.getProperty(1).toString().trim(),
+                        Message.getProperty(2).toString().trim(),
                         Message.getProperty(3).toString(),
                         Boolean.valueOf(Message.getProperty(4).toString()),
                         false, false, false

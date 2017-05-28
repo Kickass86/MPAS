@@ -31,7 +31,6 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 //import android.graphics.Color;
 
@@ -48,37 +47,27 @@ public class MainActivity extends AppCompatActivity {
 //    private int Message_Number = 0;
     //    private SharedPreferenceHandler sp;
     private final SharedPreferenceHandler share;
-
+    //    private static String DeviceID;
+//    private static String username;
+//    private static String password;
+    private PendingIntent pendingIntent;
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-//            boolean Titles = false;
-//            String[] Userdata = new String[]{share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
-//
-//        Application ap = this. getApplication();
-//
-//            NetworkAsyncTask task = new NetworkAsyncTask(context, isAppForeground(context));
-//            try {
-//                task.execute(Userdata).get();
-            if (share.GetStatus().equals(getString(R.string.OK))) {
-//                GetMessagesfromDB();
-//                ShowMessages();
-                GetMessages oo = new GetMessages();
-                try {
-                    oo.execute("").get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
-            }
-//            } catch (ExecutionException | InterruptedException ei) {
-//                ei.printStackTrace();
+            UpdateUI(share.GetUsername(), share.GetPassword(), share.GetDeviceID(), share.GetStatus());
+
+//            if (share.GetStatus().equals(getString(R.string.OK))) {
+////                GetMessagesfromDB();
+////                ShowMessages();
+//                GetMessages oo = new GetMessages();
+//                oo.execute("");
 //            }
+
             Log.i("is this ", "BroadcastReceiver");
 
         }
     };
-    private PendingIntent pendingIntent;
     //    BroadcastReceiver NotifyReceiver = new BroadcastReceiver() {
 //        @Override
 //        public void onReceive(Context context, Intent intent) {
@@ -225,11 +214,7 @@ public class MainActivity extends AppCompatActivity {
 //            GetMessagesfromDB();
 //            ShowMessages();
             GetMessages oo = new GetMessages();
-            try {
-                oo.execute("").get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+            oo.execute("");
         }
     }
 
@@ -253,11 +238,7 @@ public class MainActivity extends AppCompatActivity {
 //            String result = "OK";
             String[] UserDetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
             NetworkAsyncTask task = new NetworkAsyncTask(this);
-            try {
-                task.execute(UserDetails).get();
-            } catch (ExecutionException | InterruptedException ei) {
-                ei.printStackTrace();
-            }
+            task.execute(UserDetails);
             if (share.GetStatus().equals(getString(R.string.OK))) {
                 //set Repeating Alarm
                 setContentView(R.layout.messages_layout);
@@ -278,11 +259,7 @@ public class MainActivity extends AppCompatActivity {
 //                    GetMessagesfromDB();
 //                    ShowMessages();
                     GetMessages oo = new GetMessages();
-                    try {
-                        oo.execute("").get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
+                    oo.execute("");
                 }
             }
         }
@@ -307,19 +284,15 @@ public class MainActivity extends AppCompatActivity {
 //                GetMessagesfromDB();
 //                ShowMessages();
                 GetMessages oo = new GetMessages();
-                try {
-                    oo.execute("").get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
+                oo.execute("");
             }
         } else {
             setContentView(R.layout.login_layout);
 
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
 
                     UsernameView = (EditText) findViewById(R.id.editText2);
                     PasswordView = (EditText) findViewById(R.id.editText);
@@ -353,8 +326,8 @@ public class MainActivity extends AppCompatActivity {
 //                Log.i("Successful Login ", "Welcome " + Name);
                         }
                     });
-                }
-            }).start();
+//                }
+//            }).start();
         }
 
 
@@ -387,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
             cancel = true;
         }
 
-        String s = "";
+//        String s = "";
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
@@ -396,84 +369,81 @@ public class MainActivity extends AppCompatActivity {
             // save data in local shared preferences
             String[] Userdata = {username, password, DeviceID};
             NetworkAsyncTask task = new NetworkAsyncTask(this);
-            try {
-                s = task.execute(Userdata).get();
-            } catch (ExecutionException | InterruptedException ei) {
-                ei.printStackTrace();
-            }
-            String state = share.GetStatus();
-            if (state.equals(getString(R.string.OK))) {
-                //set Repeating Alarm
+            task.execute(Userdata);
+
+        }
+
+
+    }
+
+
+    private void UpdateUI(String username, String password, String DeviceID, String state) {
+//        String state = share.GetStatus();
+        if (state.equals(getString(R.string.OK))) {
+            //set Repeating Alarm
 //                setContentView(R.layout.activity_main_logged_in);
 
-                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-                alarmIntent.setAction("Alarm");
-                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+            Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+            alarmIntent.setAction("Alarm");
+            pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
 
-                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 //                long interval = INTERVAL_FIFTEEN_MINUTES;
-                int interval = 60000;
+            int interval = 60000;
 
 //                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + interval, interval, pendingIntent);
-                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
-                Log.i("Alarm", "Set");
-                if (share.GetActivation().equals(getString(R.string.Active))) {
+            manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + interval, interval, pendingIntent);
+            Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+            Log.i("Alarm", "Set");
+            if (share.GetActivation().equals(getString(R.string.Active))) {
 //                    GetMessagesfromDB();
 //                    ShowMessages();
-                    GetMessages oo = new GetMessages();
-                    try {
-                        oo.execute("").get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } else if (state.equals(getString(R.string.Wait))) {
+                GetMessages oo = new GetMessages();
+                oo.execute("");
+            }
+        } else if (state.equals(getString(R.string.Wait))) {
 
-                setContentView(R.layout.wait_for_activation_layout);
-                share.SaveDeviceID(DeviceID);
-                share.SaveLoginDetails(username, password);
+            setContentView(R.layout.wait_for_activation_layout);
+            share.SaveDeviceID(DeviceID);
+            share.SaveLoginDetails(username, password);
 //                share.SaveActivation(getString(R.string.NotActive));
 
 
-                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-                alarmIntent.setAction("Alarm");
-                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+            Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+            alarmIntent.setAction("Alarm");
+            pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
 
-                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 //                long interval = INTERVAL_FIFTEEN_MINUTES;
-                int interval = 60000;
+            int interval = 60000;
 
 //                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + interval, interval, pendingIntent);
-                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
-                Log.i("Alarm", "Set");
+            manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + interval, interval, pendingIntent);
+            Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+            Log.i("Alarm", "Set");
 
 //                ShowMessages();
 
 
-            } else {
-                //Error On LogIn
-                Log.w("ERROR", "Wrong Information");
-                Toast.makeText(this.getApplicationContext(),
-                        "Something is wrong, check your connection and username/password :" + s, Toast.LENGTH_LONG).show();
-                final Intent intent = getIntent();
+        } else {
+            //Error On LogIn
+            Log.w("ERROR", "Wrong Information");
+            Toast.makeText(this.getApplicationContext(),
+                    "Something is wrong, check your connection and username/password :", Toast.LENGTH_LONG).show();
+            final Intent intent = getIntent();
 //                Thread thread = new Thread() {
 //                    @Override
 //                    public void run() {
-                        try {
-                            Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
-                            MainActivity.this.finish();
-                            startActivity(intent);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+            try {
+                Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
+                MainActivity.this.finish();
+                startActivity(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 //                    }
 //                };
 //                thread.start();
-            }
-
-
         }
 
 
@@ -540,8 +510,8 @@ public class MainActivity extends AppCompatActivity {
                         do {
                             MessageObject MObj = new MessageObject();
                             MObj.setMessageID(cursor.getInt(0));
-                            MObj.setMessageTitle(cursor.getString(1));
-                            MObj.setMessageBody(cursor.getString(2));
+                            MObj.setMessageTitle(cursor.getString(1).trim());
+                            MObj.setMessageBody(cursor.getString(2).trim());
                             MObj.setInsertDate(cursor.getString(3));
                             MObj.setCritical("1".equals(cursor.getString(4)));
                             MObj.setSeen("1".equals(cursor.getString(5)));

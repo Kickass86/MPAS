@@ -4,20 +4,15 @@
     android:layout_height="wrap_content"
     android:layout_centerInParent="true">
 
-    <TableLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
 
-        <TableRow>
-
-            <TextView
+    <TextView
                 android:id="@+id/title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dip"
-                android:layout_marginStart="5dip"
+        android:layout_marginLeft="10dip"
+        android:layout_marginStart="10dip"
                 android:layout_marginTop="10dip"
-                android:layout_weight="10"
+        android:layout_weight="20"
                 android:ellipsize="end"
                 android:maxLines="1"
 
@@ -40,9 +35,10 @@
                 android:id="@+id/body"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dip"
                 android:layout_marginRight="8dip"
                 android:layout_marginTop="10dip"
-                android:layout_weight="45"
+                android:layout_weight="35"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textAlignment="center"
@@ -65,9 +61,6 @@
                 android:layout_marginTop="8dip"
                 android:layout_weight="10"
                 android:textSize="16sp" />
-
-        </TableRow>
-    </TableLayout>
 
 
 </LinearLayout>
