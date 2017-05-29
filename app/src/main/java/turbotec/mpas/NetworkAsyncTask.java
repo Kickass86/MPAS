@@ -97,8 +97,18 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
         OPERATION_NAME_CHECK = "CheckUser";
         OPERATION_NAME_DELIVERED = "Delivered";
+
 //        char[] encryptedchar = null; for(int i = 0; i < encryptedBytes.length; i++) {     encryptedchar[i] = (char) (encryptedBytes[i] & 0xFF);      }
     }
+
+//    public NetworkAsyncTask(MainActivity activity) {
+//        MyContext = activity.getBaseContext();
+//        db = DatabaseHandler.getInstance(MyContext);
+//        share = SharedPreferenceHandler.getInstance(MyContext);
+//
+//        OPERATION_NAME_CHECK = "CheckUser";
+//        OPERATION_NAME_DELIVERED = "Delivered";
+//    }
 
     private boolean isLocalReachable() {
 
@@ -169,10 +179,19 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
         // dismiss progress dialog and update ui
         Log.d("SQLite", "Begin to Show");
         if (isAppForeground(MyContext)) {
+            Intent intent = new Intent("Alarm fire");
+            intent.putExtra("New", New);
             MyContext.sendBroadcast(new Intent("Alarm fire"));
         }
 //        ShowMessages(GetMessagesfromDB());
 //        UpdateUI();
+//        if (New) {
+//            activity.GetMessages oo = new GetMessages(this);
+//            oo.execute("");
+//        }
+//        else {
+//            UpdateUI(share.GetUsername(), share.GetPassword(), share.GetDeviceID(), share.GetStatus());
+//        }
 
     }
 

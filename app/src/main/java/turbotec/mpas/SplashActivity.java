@@ -24,9 +24,11 @@ public class SplashActivity extends AppCompatActivity {
 
     //    private final int SPLASH_DISPLAY_LENGTH = 3000;
     private final String LOG_TAG = "AppUpgrade";
+    private final String PERCENT = "Progress bar state";
     private ProgressBar bar;
     private String appURI = "";
     private File myFile;
+    private boolean Flag = false;
     private int i = 0;
     private boolean isVCRregistered = false;
     private boolean isDRRregistered = false;
@@ -70,7 +72,7 @@ public class SplashActivity extends AppCompatActivity {
 //                                        "application/vnd.android.package-archive");
 //                    installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
 //                                        downloadManager.getMimeTypeForDownloadedFile(downloadReference));
-                            installIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
                             startActivity(installIntent);
 
@@ -102,6 +104,15 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.splash);
 
         bar = (ProgressBar) findViewById(R.id.progressBar);
+
+        if (savedInstanceState != null) {
+            int percent = savedInstanceState.getInt(PERCENT);
+            bar.setProgress(percent);
+            Flag = true;
+        } else {
+            bar.setProgress(0);
+            Flag = false;
+        }
 
         PackageInfo pInfo = null;
         String version = "1";
@@ -136,11 +147,6 @@ public class SplashActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        bar.setProgress(0);
-    }
 
     @Override
     protected void onDestroy() {
@@ -154,6 +160,12 @@ public class SplashActivity extends AppCompatActivity {
             isDRRregistered = false;
         }
         super.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(PERCENT, bar.getProgress());
     }
 
     public class VersionCheckReceiver extends BroadcastReceiver {
@@ -175,7 +187,7 @@ public class SplashActivity extends AppCompatActivity {
                 try {
 //
 
-                    if ((latestVersion != 0) & (latestVersion != (versionCode))) {
+                    if ((latestVersion != 0) & (latestVersion > (versionCode))) {
 
 
                         //check if we need to upgrade?
@@ -187,7 +199,7 @@ public class SplashActivity extends AppCompatActivity {
                             installIntent.setDataAndType(Uri.fromFile(myFile),
                                     "application/vnd.android.package-archive");
 
-                            installIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
                             startActivity(installIntent);
 
@@ -286,9 +298,12 @@ public class SplashActivity extends AppCompatActivity {
 
                     } else {
                         CountDownTimer mCountDownTimer;
-                        i = 0;
-
-                        bar.setProgress(i);
+                        if (Flag) {
+                            i = bar.getProgress() / 12;
+                        } else {
+                            i = 0;
+                        }
+//                        bar.setProgress(i);
                         mCountDownTimer = new CountDownTimer(4000, 500) {
 
                             @Override
@@ -303,11 +318,14 @@ public class SplashActivity extends AppCompatActivity {
                             public void onFinish() {
                                 //Do what you want
                                 i++;
-                                bar.setProgress(i);
+//                                bar.setProgress(i);
                                 bar.setProgress(100);
 
                                 Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
-                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                                 SplashActivity.this.startActivity(mainIntent);
                                 if (isVCRregistered) {
                                     unregisterReceiver(VersionCheckReceiver.this);
@@ -331,9 +349,13 @@ public class SplashActivity extends AppCompatActivity {
 
 
                     CountDownTimer mCountDownTimer;
-                    i = 0;
+                    if (Flag) {
+                        i = bar.getProgress() / 12;
+                    } else {
+                        i = 0;
+                    }
 
-                    bar.setProgress(i);
+//                    bar.setProgress(i);
                     mCountDownTimer = new CountDownTimer(4000, 500) {
 
                         @Override
@@ -348,11 +370,14 @@ public class SplashActivity extends AppCompatActivity {
                         public void onFinish() {
                             //Do what you want
                             i++;
-                            bar.setProgress(i);
+//                            bar.setProgress(i);
                             bar.setProgress(100);
 
                             Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
-                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                             SplashActivity.this.startActivity(mainIntent);
                             if (isVCRregistered) {
                                 unregisterReceiver(VersionCheckReceiver.this);

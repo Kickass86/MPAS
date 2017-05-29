@@ -1,13 +1,12 @@
 package turbotec.mpas;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -17,18 +16,15 @@ import android.widget.TextView;
 //import android.content.Intent;
 //import android.support.annotation.Nullable;
 
-public class Message_Detail_Activity extends AppCompatActivity {
+public class Message_Detail_Activity extends Activity {
 
     private static DatabaseHandler db;
-    private final Context context = this;
+    //    private final Context context;
     //    SQLiteDatabase database;
     private Button DelBut;
     private Integer ID = 1;
 //    private String[] arg;
 
-    public Message_Detail_Activity() {
-
-    }
 
 
 //    public class SaveState extends IntentService {
@@ -133,7 +129,7 @@ public class Message_Detail_Activity extends AppCompatActivity {
             public void onClick(View v) {
 
 
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getBaseContext());
 
                 alertDialogBuilder.setPositiveButton("Yes",
                         new DialogInterface.OnClickListener() {
