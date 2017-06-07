@@ -48,21 +48,24 @@ public class MainActivity extends AppCompatActivity {
 //    private int Message_Number = 0;
     //    private SharedPreferenceHandler sp;
     private final SharedPreferenceHandler share;
-    //    private static String DeviceID;
-//    private static String username;
-//    private static String password;
-    private PendingIntent pendingIntent;
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            boolean b = intent.getBooleanExtra("New", false);
-            if (b) {
-                GetMessages oo = new GetMessages(); // TODO
-                oo.execute("");
-            } else {
-                UpdateUI(share.GetUsername(), share.GetPassword(), share.GetDeviceID(), share.GetStatus());
-            }
+
+//            if (share.GetStatus().equals(getString(R.string.OK)))
+//            {
+//                setContentView(R.layout.messages_layout);
+//                share.SaveLoginDetails(Username, Password);
+//                share.SaveDeviceID(DeviceID);
+//            }
+//            boolean b = intent.getBooleanExtra("New", false);
+//            if (b) {
+//                GetMessages oo = new GetMessages(); // TODO
+//                oo.execute("");
+//            }
+
+            UpdateUI(share.GetStatus());
 
 //            if (share.GetStatus().equals(getString(R.string.OK))) {
 ////                GetMessagesfromDB();
@@ -75,6 +78,14 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+    private int interval = 60000;
+    private String Username;
+    private String Password;
+    private String DeviceID;
+    //    private static String DeviceID;
+//    private static String username;
+//    private static String password;
+    private PendingIntent pendingIntent;
     //    BroadcastReceiver NotifyReceiver = new BroadcastReceiver() {
 //        @Override
 //        public void onReceive(Context context, Intent intent) {
@@ -215,12 +226,12 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 //        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 //        nMgr.cancelAll();
-        if (share.GetStatus().equals(getString(R.string.OK))) {
+//        if (share.GetStatus().equals(getString(R.string.OK))) {
 //            GetMessagesfromDB();
 //            ShowMessages();
             GetMessages oo = new GetMessages();
             oo.execute("");
-        }
+//        }
     }
 
     @Override
@@ -233,19 +244,17 @@ public class MainActivity extends AppCompatActivity {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancelAll();
 
-//        registerReceiver(NotifyReceiver, new IntentFilter("Notification fire"));
-//        if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
-//                && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.Active)))) {
+//        String[] UserDetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
+//        NetworkAsyncTask task = new NetworkAsyncTask(this);
+//        task.execute(UserDetails);
+
         String state = share.GetStatus();
 
-        if (state.equals(getString(R.string.OK))) {
-            setContentView(R.layout.activity_main_logged_in);
-//            String result = "OK";
-            String[] UserDetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
-            NetworkAsyncTask task = new NetworkAsyncTask(this);
-            task.execute(UserDetails);
-            if (share.GetStatus().equals(getString(R.string.OK))) {
-                //set Repeating Alarm
+        State st = State.valueOf(state);
+
+        switch (st) {
+            case OK: {
+
                 setContentView(R.layout.messages_layout);
 
                 Intent alarmIntent = new Intent(this, AlarmReceiver.class);
@@ -254,73 +263,62 @@ public class MainActivity extends AppCompatActivity {
 
                 AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 //                long interval = INTERVAL_FIFTEEN_MINUTES;
-                int interval = 60000;
+//                    int interval = 60000;
 
 //                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
                 manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
 //                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
                 Log.i("Alarm", "Set");
-                if (share.GetActivation().equals(getString(R.string.Active))) {
-//                    GetMessagesfromDB();
-//                    ShowMessages();
-                    GetMessages oo = new GetMessages();
-                    oo.execute("");
-                }
-            }
-        }
-
-//            if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
-//                    && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.NotActive)))) {
-        else if (state.equals(getString(R.string.Wait))) {
-            setContentView(R.layout.wait_for_activation_layout);
-            Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-            alarmIntent.setAction("Alarm");
-            pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
-
-            AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-//                long interval = INTERVAL_FIFTEEN_MINUTES;
-            int interval = 60000;
-
-//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-            manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
-//            Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
-            Log.i("Alarm", "Set");
-            if (share.GetActivation().equals(getString(R.string.Active))) {
-//                GetMessagesfromDB();
-//                ShowMessages();
+//                    if (share.GetActivation().equals(getString(R.string.Active))) {
+////                    GetMessagesfromDB();
+////                    ShowMessages();
                 GetMessages oo = new GetMessages();
                 oo.execute("");
+//                UpdateUI();
+//                    }
+
+                break;
             }
-        } else {
-            setContentView(R.layout.login_layout);
+            case Wait: {
+                setContentView(R.layout.wait_for_activation_layout);
+                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+                alarmIntent.setAction("Alarm");
+                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+
+                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//                long interval = INTERVAL_FIFTEEN_MINUTES;
+//                int interval = 60000;
+
+//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+//            Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+                Log.i("Alarm", "Set");
+//                if (share.GetActivation().equals(getString(R.string.Active))) {
+////                GetMessagesfromDB();
+////                ShowMessages();
+//                    GetMessages oo = new GetMessages();
+//                    oo.execute("");
+//                }
+                break;
+            }
+            case Invalid:
+            case Not_Saved:
+            default: {
+                setContentView(R.layout.login_layout);
 
 
 //            new Thread(new Runnable() {
 //                @Override
 //                public void run() {
 
-                    UsernameView = (EditText) findViewById(R.id.editText2);
-                    PasswordView = (EditText) findViewById(R.id.editText);
-                    Button registerButton = (Button) findViewById(R.id.button);
-                    PasswordView.setOnKeyListener(new View.OnKeyListener() {
+                UsernameView = (EditText) findViewById(R.id.editText2);
+                PasswordView = (EditText) findViewById(R.id.editText);
+                Button registerButton = (Button) findViewById(R.id.button);
+                PasswordView.setOnKeyListener(new View.OnKeyListener() {
 
-                        @Override
-                        public boolean onKey(View v, int keyCode, KeyEvent event) {
-                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
-                                String Username = UsernameView.getText().toString();
-                                String Password = PasswordView.getText().toString();
-                                String DeviceID = getUniquePsuedoID();
-                                attemptLogin(Username, Password, DeviceID);
-                            }
-                            return false;
-                        }
-                    });
-
-
-                    registerButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-
+                    @Override
+                    public boolean onKey(View v, int keyCode, KeyEvent event) {
+                        if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
                             String Username = UsernameView.getText().toString();
                             String Password = PasswordView.getText().toString();
                             String DeviceID = getUniquePsuedoID();
@@ -328,15 +326,131 @@ public class MainActivity extends AppCompatActivity {
                             share.SaveDeviceID(DeviceID);
 
                             attemptLogin(Username, Password, DeviceID);
-//                Log.i("Successful Login ", "Welcome " + Name);
                         }
-                    });
-//                }
-//            }).start();
+                        return false;
+                    }
+                });
+
+
+                registerButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        String Username = UsernameView.getText().toString();
+                        String Password = PasswordView.getText().toString();
+                        String DeviceID = getUniquePsuedoID();
+                        share.SaveLoginDetails(Username, Password);
+                        share.SaveDeviceID(DeviceID);
+
+                        attemptLogin(Username, Password, DeviceID);
+//                Log.i("Successful Login ", "Welcome " + Name);
+                    }
+                });
+            }
+
+
         }
 
 
-
+//        if (state.equals(getString(R.string.OK))) {
+//            setContentView(R.layout.activity_main_logged_in);
+////            String result = "OK";
+//            String[] UserDetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
+//            NetworkAsyncTask task = new NetworkAsyncTask(this);
+//            task.execute(UserDetails);
+//            if (share.GetStatus().equals(getString(R.string.OK))) {
+//                //set Repeating Alarm
+//                setContentView(R.layout.messages_layout);
+//
+//                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+//                alarmIntent.setAction("Alarm");
+//                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+//
+//                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+////                long interval = INTERVAL_FIFTEEN_MINUTES;
+//                int interval = 60000;
+//
+////                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+////                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+//                Log.i("Alarm", "Set");
+//                if (share.GetActivation().equals(getString(R.string.Active))) {
+////                    GetMessagesfromDB();
+////                    ShowMessages();
+//                    GetMessages oo = new GetMessages();
+//                    oo.execute("");
+//                }
+//            }
+//        }
+//
+////            if (!(share.GetDeviceID().equals(getString(R.string.defaultValue))) && (!share.GetUsername().equals(getString(R.string.defaultValue)))
+////                    && (!share.GetPassword().equals(getString(R.string.defaultValue))) && (share.GetActivation().equals(getString(R.string.NotActive)))) {
+//        else if (state.equals(getString(R.string.Wait))) {
+//            setContentView(R.layout.wait_for_activation_layout);
+//            Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+//            alarmIntent.setAction("Alarm");
+//            pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+//
+//            AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+////                long interval = INTERVAL_FIFTEEN_MINUTES;
+//            int interval = 60000;
+//
+////                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+//            manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+////            Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+//            Log.i("Alarm", "Set");
+//            if (share.GetActivation().equals(getString(R.string.Active))) {
+////                GetMessagesfromDB();
+////                ShowMessages();
+//                GetMessages oo = new GetMessages();
+//                oo.execute("");
+//            }
+//        } else {
+//            setContentView(R.layout.login_layout);
+//
+//
+////            new Thread(new Runnable() {
+////                @Override
+////                public void run() {
+//
+//                    UsernameView = (EditText) findViewById(R.id.editText2);
+//                    PasswordView = (EditText) findViewById(R.id.editText);
+//                    Button registerButton = (Button) findViewById(R.id.button);
+//                    PasswordView.setOnKeyListener(new View.OnKeyListener() {
+//
+//                        @Override
+//                        public boolean onKey(View v, int keyCode, KeyEvent event) {
+//                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
+//                                String Username = UsernameView.getText().toString();
+//                                String Password = PasswordView.getText().toString();
+//                                String DeviceID = getUniquePsuedoID();
+//                                share.SaveLoginDetails(Username, Password);
+//                                share.SaveDeviceID(DeviceID);
+//
+//                                attemptLogin(Username, Password, DeviceID);
+//                            }
+//                            return false;
+//                        }
+//                    });
+//
+//
+//                    registerButton.setOnClickListener(new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View view) {
+//
+//                            String Username = UsernameView.getText().toString();
+//                            String Password = PasswordView.getText().toString();
+//                            String DeviceID = getUniquePsuedoID();
+//                            share.SaveLoginDetails(Username, Password);
+//                            share.SaveDeviceID(DeviceID);
+//
+//                            attemptLogin(Username, Password, DeviceID);
+////                Log.i("Successful Login ", "Welcome " + Name);
+//                        }
+//                    });
+////                }
+////            }).start();
+//        }
 
 
     }
@@ -372,66 +486,76 @@ public class MainActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             // save data in local shared preferences
+            Username = username;
+            Password = password;
+            this.DeviceID = DeviceID;
             String[] Userdata = {username, password, DeviceID};
             NetworkAsyncTask task = new NetworkAsyncTask(this);
             task.execute(Userdata);
-
+//            UpdateUI(username, password, DeviceID, null);
         }
 
 
     }
 
-    private void UpdateUI(String username, String password, String DeviceID, String state1) {
+    private void UpdateUI(String state1) {
+        if (state1 == null) {
+            state1 = share.GetStatus();
+        }
+//        if(state1.equals(getString(R.string.defaultValue)))
+//        {
+//            state1 = "Not_Saved";
+//        }
 //        String state = share.GetStatus();
 
         State state2 = State.valueOf(state1);
 
         switch (state2) {
             case OK: {
-                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-                alarmIntent.setAction("Alarm");
-                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
-
-                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-//                long interval = INTERVAL_FIFTEEN_MINUTES;
-                int interval = 60000;
-
-//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + interval, interval, pendingIntent);
-//                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
-                Log.i("Alarm", "Set");
-                if (share.GetActivation().equals(getString(R.string.Active))) {
-//                    GetMessagesfromDB();
-//                    ShowMessages();
-                    GetMessages oo = new GetMessages();
-                    oo.execute("");
-                }
+//                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+//                alarmIntent.setAction("Alarm");
+//                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+//
+//                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+////                long interval = INTERVAL_FIFTEEN_MINUTES;
+////                int interval = 60000;
+//
+////                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+////                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+//                Log.i("Alarm", "Set");
+////                if (share.GetActivation().equals(getString(R.string.Active))) {
+////                    GetMessagesfromDB();
+////                    ShowMessages();
+                GetMessages oo = new GetMessages();
+                oo.execute("");
+//                }
                 break;
             }
 
             case Wait: {
 
                 setContentView(R.layout.wait_for_activation_layout);
-                share.SaveDeviceID(DeviceID);
-                share.SaveLoginDetails(username, password);
+
 //                share.SaveActivation(getString(R.string.NotActive));
 
 
-                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-                alarmIntent.setAction("Alarm");
-                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
-
-                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-//                long interval = INTERVAL_FIFTEEN_MINUTES;
-                int interval = 60000;
-
-//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + interval, interval, pendingIntent);
-//                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
-                Log.i("Alarm", "Set");
+//                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+//                alarmIntent.setAction("Alarm");
+//                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+//
+//                AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+////                long interval = INTERVAL_FIFTEEN_MINUTES;
+////                int interval = 60000;
+//
+////                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+//                manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), interval, pendingIntent);
+////                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
+//                Log.i("Alarm", "Set");
                 break;
             }
             case Invalid:
+            case Not_Saved:
             default: {
                 Log.w("ERROR", "Wrong Information");
 //                Toast.makeText(this.getApplicationContext(),
@@ -547,8 +671,8 @@ public class MainActivity extends AppCompatActivity {
         }
 //        Message_Number = MESSAGES.size();
 //        if (MESSAGES.isEmpty()) {
-            TextView emptyText = (TextView) findViewById(android.R.id.empty);
-            lv.setEmptyView(emptyText);
+        TextView emptyText = (TextView) findViewById(android.R.id.empty);
+        lv.setEmptyView(emptyText);
 //        }
 
 
@@ -564,7 +688,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private enum State {
-        OK, Wait, Invalid
+        OK, Wait, Invalid, Not_Saved
     }
 
     private class GetMessages extends AsyncTask<String, String, String> {
@@ -665,7 +789,7 @@ public class MainActivity extends AppCompatActivity {
             // TODO Auto-generated method stub
             Holder holder = new Holder();
             final View rowView;
-            rowView = inflater.inflate(R.layout.list_row_layout, null);
+            rowView = inflater.inflate(R.layout.list_row_layout, parent, false);
             holder.tv1 = (TextView) rowView.findViewById(R.id.title);
             holder.tv2 = (TextView) rowView.findViewById(R.id.body);
             holder.iv = (ImageView) rowView.findViewById(R.id.state);
@@ -673,12 +797,12 @@ public class MainActivity extends AppCompatActivity {
             holder.tv1.setText(Titles.get(position));
             holder.tv2.setText(Bodies.get(position));
             if (isSeen.get(position))
-                holder.iv.setImageResource(R.mipmap.seen);
+                holder.iv.setImageResource(R.mipmap.ic_done_all_black_24dp);
             else
-                holder.iv.setImageResource(R.mipmap.delivered);
+                holder.iv.setImageResource(R.mipmap.ic_done_black_24dp);
 
             if (CList.get(position)) {
-                holder.i2.setImageResource(R.mipmap.critical);
+                holder.i2.setImageResource(R.mipmap.ic_priority_high_black_24dp);
             }
 
             rowView.setOnClickListener(new View.OnClickListener() {

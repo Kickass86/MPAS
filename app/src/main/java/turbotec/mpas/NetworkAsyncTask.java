@@ -121,8 +121,9 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 800;   // 200 milliseconds
-            sock.connect(sockaddr, timeoutMs);
+//            int timeoutMs = 1000;   // 200 milliseconds
+//            sock.connect(sockaddr, timeoutMs);
+            sock.connect(sockaddr);
             exists = true;
 
             sock.close();
@@ -316,17 +317,15 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
             if (Authresp.contains("Invalid") | Authresp.contains("Error")) {
                 share.SaveActivation(MyContext.getString(R.string.NotActive));
                 FLag = Authresp;
-            }
-            if (Authresp.contains("Wait")) {
+            } else if (Authresp.contains("Wait")) {
                 share.SaveActivation(MyContext.getString(R.string.NotActive));
                 FLag = "Wait";
-            }
-            if (Authresp.contains("No Message")) {
+            } else { //(Authresp.contains("No Message"))
                 share.SaveActivation(MyContext.getString(R.string.Active));
                 FLag = "OK";
             }
             if (!Tokenresp.isEmpty()) {
-//                    share.SaveActivation(MyContext.getString(R.string.Active));
+////                    share.SaveActivation(MyContext.getString(R.string.Active));
                 share.SaveToken(Tokenresp);
                 FLag = "OK";
             }
@@ -413,7 +412,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
 
                 plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
-                plaintext = plaintext.replaceAll("\n", "");
+                plaintxt = plaintxt.replaceAll("\n", "");
 
                 SoapObject requestDel = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
                 PropertyInfo Pinf = new PropertyInfo();
@@ -498,7 +497,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
 
                 plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
-                plaintext = plaintext.replaceAll("\n", "");
+                plaintxt = plaintxt.replaceAll("\n", "");
 
                 SoapObject requestDel = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
                 PropertyInfo Pinf = new PropertyInfo();
@@ -555,7 +554,7 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
 
 
                 plaintxt = new String(Base64.encode(plaintxt.getBytes(), Base64.DEFAULT));
-                plaintext = plaintext.replaceAll("\n", "");
+                plaintxt = plaintxt.replaceAll("\n", "");
 
                 SoapObject requestDel = new SoapObject(WSDL_TARGET_NAMESPACE, OPERATION_NAME_DELIVERED);
                 PropertyInfo Pinf = new PropertyInfo();

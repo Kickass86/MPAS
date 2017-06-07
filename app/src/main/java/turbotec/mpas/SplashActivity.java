@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -72,7 +73,8 @@ public class SplashActivity extends AppCompatActivity {
 //                                        "application/vnd.android.package-archive");
 //                    installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
 //                                        downloadManager.getMimeTypeForDownloadedFile(downloadReference));
-                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
                             startActivity(installIntent);
 
@@ -199,7 +201,8 @@ public class SplashActivity extends AppCompatActivity {
                             installIntent.setDataAndType(Uri.fromFile(myFile),
                                     "application/vnd.android.package-archive");
 
-                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
                             startActivity(installIntent);
 
@@ -325,7 +328,7 @@ public class SplashActivity extends AppCompatActivity {
 //                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 //                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 //                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                                 SplashActivity.this.startActivity(mainIntent);
                                 if (isVCRregistered) {
                                     unregisterReceiver(VersionCheckReceiver.this);
@@ -355,6 +358,8 @@ public class SplashActivity extends AppCompatActivity {
                         i = 0;
                     }
 
+                    Toast.makeText(context, "Error while downloading!", Toast.LENGTH_SHORT);
+
 //                    bar.setProgress(i);
                     mCountDownTimer = new CountDownTimer(4000, 500) {
 
@@ -377,7 +382,7 @@ public class SplashActivity extends AppCompatActivity {
 //                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 //                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 //                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                             SplashActivity.this.startActivity(mainIntent);
                             if (isVCRregistered) {
                                 unregisterReceiver(VersionCheckReceiver.this);

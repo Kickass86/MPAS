@@ -63,7 +63,7 @@ public class SendStatusAsyncTask extends AsyncTask {
 
             // This method will block no more than timeoutMs.
             // If the timeout occurs, SocketTimeoutException is thrown.
-            int timeoutMs = 800;   // 200 milliseconds
+            int timeoutMs = 1000;   // 200 milliseconds
             sock.connect(sockaddr, timeoutMs);
             exists = true;
 
@@ -163,6 +163,8 @@ public class SendStatusAsyncTask extends AsyncTask {
 
         } catch (XmlPullParserException | IOException soapFault) {
             soapFault.printStackTrace();
+        } finally {
+            database.close();
         }
 
 

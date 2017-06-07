@@ -76,9 +76,9 @@ public class Message_Detail_Activity extends Activity {
             ImageView i2 = (ImageView) findViewById(R.id.Critical2);
             t1.setText(Title);
             t2.setText(Body);
-            i1.setImageResource(R.mipmap.seen);
+            i1.setImageResource(R.mipmap.ic_done_all_black_24dp);
             if (Critical) {
-                i2.setImageResource(R.mipmap.critical);
+                i2.setImageResource(R.mipmap.ic_priority_high_black_24dp);
             }
             if (!isSeen) {
 
@@ -94,7 +94,7 @@ public class Message_Detail_Activity extends Activity {
                         ContentValues values = new ContentValues();
                         values.put("Seen", true);
                         database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(ID)});
-//                        database.close();
+                        database.close();
 
                     }
 
@@ -129,7 +129,7 @@ public class Message_Detail_Activity extends Activity {
             public void onClick(View v) {
 
 
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getBaseContext());
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(Message_Detail_Activity.this);
 
                 alertDialogBuilder.setPositiveButton("Yes",
                         new DialogInterface.OnClickListener() {
@@ -139,8 +139,11 @@ public class Message_Detail_Activity extends Activity {
 //                                arg = new String[]{String.valueOf(ID)};
 //                                database.delete("Messages", "MessageID  = ?", new String[]{String.valueOf(ID)});
 //                                database.close();
-                                DatabaseDeleteOperation ff = new DatabaseDeleteOperation();
-                                ff.execute("");
+//                                DatabaseDeleteOperation ff = new DatabaseDeleteOperation();
+//                                ff.execute("");
+                                SQLiteDatabase database = db.getWritableDatabase();
+                                database.delete("Messages", "MessageID  = ?", new String[]{String.valueOf(ID)});
+                                database.close();
                                 finish();
 
                             }
