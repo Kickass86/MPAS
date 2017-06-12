@@ -26,12 +26,15 @@ public class SplashActivity extends AppCompatActivity {
     //    private final int SPLASH_DISPLAY_LENGTH = 3000;
     private final String LOG_TAG = "AppUpgrade";
     private final String PERCENT = "Progress bar state";
+    private final SharedPreferenceHandler share;
     private ProgressBar bar;
     private String appURI = "";
+    private int latestVersion;
     private File myFile;
     private boolean Flag = false;
     private int i = 0;
     private boolean isVCRregistered = false;
+    private boolean isServiceStarted = false;
     private boolean isDRRregistered = false;
     private int versionCode;
     private Uri Download_Uri;
@@ -47,6 +50,7 @@ public class SplashActivity extends AppCompatActivity {
             long referenceId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
             if (action.equals(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) {
                 //check if the broadcast message is for our Enqueued download
+                share.SaveFileVersion(String.valueOf(latestVersion));
 
                 DownloadManager dMgr = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                 Cursor c = dMgr.query(new DownloadManager.Query().setFilterById(referenceId));
@@ -64,21 +68,25 @@ public class SplashActivity extends AppCompatActivity {
                             //start the installation of the latest version
 //                            File outputFile = new File(Environment.DIRECTORY_DOWNLOADS + "/MyAndroidApp.apk");
 //                            if(outputFile.exists()) {
-                            Intent installIntent = new Intent(Intent.ACTION_VIEW);
 //                    installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
 //                            "application/vnd.android.package-archive");
-                            installIntent.setDataAndType(Uri.fromFile(myFile),
-                                    "application/vnd.android.package-archive");
-//                                installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
+                            //                                installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
 //                                        "application/vnd.android.package-archive");
 //                    installIntent.setDataAndType(downloadManager.getUriForDownloadedFile(downloadReference),
 //                                        downloadManager.getMimeTypeForDownloadedFile(downloadReference));
 //                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            Intent installIntent = new Intent(Intent.ACTION_VIEW);
+                            installIntent.setDataAndType(Uri.fromFile(myFile),
+                                    "application/vnd.android.package-archive");
+
                             installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
                             startActivity(installIntent);
 
-                            unregisterReceiver(this);
+                            if (isDRRregistered) {
+                                unregisterReceiver(this);
+                                isDRRregistered = false;
+                            }
                             finish();
                             return;
                         }
@@ -100,6 +108,10 @@ public class SplashActivity extends AppCompatActivity {
     };
     private DownloadManager downloadManager;
 
+    public SplashActivity() {
+        share = SharedPreferenceHandler.getInstance(this);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,6 +124,11 @@ public class SplashActivity extends AppCompatActivity {
             bar.setProgress(percent);
             Flag = true;
         } else {
+            Intent in = new Intent(this, VersionCheck.class);
+            if (!isServiceStarted) {
+                startService(in);
+                isServiceStarted = true;
+            }
             bar.setProgress(0);
             Flag = false;
         }
@@ -136,16 +153,19 @@ public class SplashActivity extends AppCompatActivity {
         IntentFilter filter1 = new IntentFilter(VersionCheckReceiver.PROCESS_RESPONSE);
         filter1.addCategory(Intent.CATEGORY_DEFAULT);
         receiver = new VersionCheckReceiver();
-        registerReceiver(receiver, filter1);
-        isVCRregistered = true;
+        if (!isVCRregistered) {
+            registerReceiver(receiver, filter1);
+            isVCRregistered = true;
+        }
 
         //Broadcast receiver for the download manager
         IntentFilter filter2 = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        registerReceiver(downloadReceiver, filter2);
-        isDRRregistered = true;
+        if (!isDRRregistered) {
+            registerReceiver(downloadReceiver, filter2);
+            isDRRregistered = true;
+        }
 
-        Intent in = new Intent(this, VersionCheck.class);
-        startService(in);
+
 
     }
 
@@ -181,57 +201,83 @@ public class SplashActivity extends AppCompatActivity {
             if (action.equals(VersionCheckReceiver.PROCESS_RESPONSE)) {
 
 //                String responseMessage = intent.getStringExtra(VersionCheck.RESPONSE_MESSAGE);
-                int latestVersion = intent.getIntExtra(VersionCheck.RESPONSE_MESSAGE, 0);
+                latestVersion = intent.getIntExtra(VersionCheck.RESPONSE_MESSAGE, 0);
                 appURI = intent.getStringExtra(VersionCheck.REQUEST_DOWNLOAD);
                 Log.v(LOG_TAG, latestVersion + "");
+                String fv = share.GetFileVersion();
+                int v = 0;
+                if (!fv.equals(getString(R.string.defaultValue))) {
+                    v = Integer.valueOf(share.GetFileVersion());
+                }
 
+                myFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/MPAS-V" + fv + ".apk");
 
-                try {
-//
+                if (((latestVersion == 0) | (v > versionCode)) & (myFile.exists()))// file downloaded before
+                {
+                    Intent installIntent = new Intent(Intent.ACTION_VIEW);
 
-                    if ((latestVersion != 0) & (latestVersion > (versionCode))) {
-
-
-                        //check if we need to upgrade?
-                        myFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/MPAS-V" + latestVersion + ".apk");
-                        if (myFile.exists()) // file downloaded before
-                        {
-                            Intent installIntent = new Intent(Intent.ACTION_VIEW);
-
-                            installIntent.setDataAndType(Uri.fromFile(myFile),
-                                    "application/vnd.android.package-archive");
+                    installIntent.setDataAndType(Uri.fromFile(myFile),
+                            "application/vnd.android.package-archive");
 
 //                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                            startActivity(installIntent);
+                    startActivity(installIntent);
 
-                            if (isVCRregistered) {
-                                unregisterReceiver(VersionCheckReceiver.this);
-                                isVCRregistered = false;
+                    if (isVCRregistered) {
+                        unregisterReceiver(VersionCheckReceiver.this);
+                        isVCRregistered = false;
+                    }
+                    finish();
+                    return;
+                } else {
+
+                    try {
+//
+
+                        if ((latestVersion != 0) & (latestVersion > (versionCode))) {
+
+
+                            //check if we need to upgrade?
+                            myFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/MPAS-V" + latestVersion + ".apk");
+                            if (myFile.exists()) // file downloaded before
+                            {
+                                Intent installIntent = new Intent(Intent.ACTION_VIEW);
+
+                                installIntent.setDataAndType(Uri.fromFile(myFile),
+                                        "application/vnd.android.package-archive");
+
+//                            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                                startActivity(installIntent);
+
+                                if (isVCRregistered) {
+                                    unregisterReceiver(VersionCheckReceiver.this);
+                                    isVCRregistered = false;
+                                }
+                                finish();
+                                return;
                             }
-                            finish();
-                            return;
-                        }
 
-                        //oh yeah we do need an upgrade, let the user know send an alert message
+                            //oh yeah we do need an upgrade, let the user know send an alert message
 //                        AlertDialog.Builder builder = new AlertDialog.Builder(SplashActivity.this);
 //                        builder.setMessage("There is newer version of this application available, click OK to upgrade now")
 //                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
 //                                    //if the user agrees to upgrade
 //                                    public void onClick(DialogInterface dialog, int id) {
-                        //start downloading the file using the download manager
-                        downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                        Download_Uri = Uri.parse(appURI);
-                        DownloadManager.Request request = new DownloadManager.Request(Download_Uri);
+                            //start downloading the file using the download manager
+                            downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                            Download_Uri = Uri.parse(appURI);
+                            DownloadManager.Request request = new DownloadManager.Request(Download_Uri);
 
 //                            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
 //                            request.setAllowedOverRoaming(false);
 //                            request.setTitle("MyAndroidApp.apk");
 //                            request.setDestinationInExternalFilesDir(SplashActivity.this, Environment.DIRECTORY_DOWNLOADS, "MyAndroidApp.apk");
-                        request.setDestinationUri(Uri.fromFile(myFile));
-                        request.setMimeType("application/vnd.android.package-archive");
-                        downloadReference = downloadManager.enqueue(request);
+                            request.setDestinationUri(Uri.fromFile(myFile));
+                            request.setMimeType("application/vnd.android.package-archive");
+                            downloadReference = downloadManager.enqueue(request);
 
 //                        BroadcastReceiver onComplete = new BroadcastReceiver() {
 //                            public void onReceive(Context ctxt, Intent intent) {
@@ -249,45 +295,45 @@ public class SplashActivity extends AppCompatActivity {
 //                        registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
 
-                        new Thread(new Runnable() {
+                            new Thread(new Runnable() {
 
-                            @Override
-                            public void run() {
+                                @Override
+                                public void run() {
 
-                                boolean downloading = true;
+                                    boolean downloading = true;
 
-                                while (downloading) {
+                                    while (downloading) {
 
-                                    DownloadManager.Query q = new DownloadManager.Query();
-                                    q.setFilterById(downloadReference);
+                                        DownloadManager.Query q = new DownloadManager.Query();
+                                        q.setFilterById(downloadReference);
 
-                                    Cursor cursor = downloadManager.query(q);
-                                    cursor.moveToFirst();
-                                    int bytes_downloaded = cursor.getInt(cursor
-                                            .getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
-                                    int bytes_total = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                                        Cursor cursor = downloadManager.query(q);
+                                        cursor.moveToFirst();
+                                        int bytes_downloaded = cursor.getInt(cursor
+                                                .getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                                        int bytes_total = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
 
-                                    if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
-                                        downloading = false;
+                                        if (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
+                                            downloading = false;
+                                        }
+
+                                        final double dl_progress = (bytes_downloaded / bytes_total) * 100;
+
+                                        runOnUiThread(new Runnable() {
+
+                                            @Override
+                                            public void run() {
+
+                                                bar.setProgress((int) dl_progress);
+
+                                            }
+                                        });
+
+                                        cursor.close();
                                     }
 
-                                    final double dl_progress = (bytes_downloaded / bytes_total) * 100;
-
-                                    runOnUiThread(new Runnable() {
-
-                                        @Override
-                                        public void run() {
-
-                                            bar.setProgress((int) dl_progress);
-
-                                        }
-                                    });
-
-                                    cursor.close();
                                 }
-
-                            }
-                        }).start();
+                            }).start();
 //                                    }
 //                                });
 //                                .setNegativeButton("Remind Later", new DialogInterface.OnClickListener() {
@@ -295,18 +341,72 @@ public class SplashActivity extends AppCompatActivity {
 //                                        // User cancelled the dialog
 //                                    }
 //                                });
-                        //show the alert message
+                            //show the alert message
 //                        builder.create().show();
 //                    }
 
-                    } else {
+                        } else {
+                            CountDownTimer mCountDownTimer;
+                            if (Flag) {
+                                i = bar.getProgress() / 12;
+                            } else {
+                                i = 0;
+                            }
+//                        bar.setProgress(i);
+                            mCountDownTimer = new CountDownTimer(4000, 500) {
+
+                                @Override
+                                public void onTick(long millisUntilFinished) {
+                                    Log.v("Log_tag", "Tick of Progress" + i + millisUntilFinished);
+                                    i++;
+                                    bar.setProgress(i * 12);
+
+                                }
+
+                                @Override
+                                public void onFinish() {
+                                    //Do what you want
+                                    i++;
+//                                bar.setProgress(i);
+                                    bar.setProgress(100);
+
+                                    Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
+//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                                    SplashActivity.this.startActivity(mainIntent);
+                                    if (isVCRregistered) {
+                                        unregisterReceiver(VersionCheckReceiver.this);
+                                        isVCRregistered = false;
+                                    }
+                                    if (isDRRregistered) {
+                                        unregisterReceiver(downloadReceiver);
+                                        isDRRregistered = false;
+                                    }
+                                    finish();
+//
+                                }
+                            };
+                            mCountDownTimer.start();
+                        }
+
+
+                    } catch (Exception e) {
+
+                        e.printStackTrace();
+
+
                         CountDownTimer mCountDownTimer;
                         if (Flag) {
                             i = bar.getProgress() / 12;
                         } else {
                             i = 0;
                         }
-//                        bar.setProgress(i);
+
+                        Toast.makeText(context, "Error while downloading!", Toast.LENGTH_SHORT);
+
+//                    bar.setProgress(i);
                         mCountDownTimer = new CountDownTimer(4000, 500) {
 
                             @Override
@@ -321,14 +421,14 @@ public class SplashActivity extends AppCompatActivity {
                             public void onFinish() {
                                 //Do what you want
                                 i++;
-//                                bar.setProgress(i);
+//                            bar.setProgress(i);
                                 bar.setProgress(100);
 
                                 Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
-//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                                 SplashActivity.this.startActivity(mainIntent);
                                 if (isVCRregistered) {
                                     unregisterReceiver(VersionCheckReceiver.this);
@@ -338,70 +438,16 @@ public class SplashActivity extends AppCompatActivity {
                                     unregisterReceiver(downloadReceiver);
                                     isDRRregistered = false;
                                 }
-                                SplashActivity.this.finish();
+                                finish();
 //
                             }
                         };
                         mCountDownTimer.start();
+
+
                     }
-
-
-                } catch (Exception e) {
-
-                    e.printStackTrace();
-
-
-                    CountDownTimer mCountDownTimer;
-                    if (Flag) {
-                        i = bar.getProgress() / 12;
-                    } else {
-                        i = 0;
-                    }
-
-                    Toast.makeText(context, "Error while downloading!", Toast.LENGTH_SHORT);
-
-//                    bar.setProgress(i);
-                    mCountDownTimer = new CountDownTimer(4000, 500) {
-
-                        @Override
-                        public void onTick(long millisUntilFinished) {
-                            Log.v("Log_tag", "Tick of Progress" + i + millisUntilFinished);
-                            i++;
-                            bar.setProgress(i * 12);
-
-                        }
-
-                        @Override
-                        public void onFinish() {
-                            //Do what you want
-                            i++;
-//                            bar.setProgress(i);
-                            bar.setProgress(100);
-
-                            Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
-//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                            SplashActivity.this.startActivity(mainIntent);
-                            if (isVCRregistered) {
-                                unregisterReceiver(VersionCheckReceiver.this);
-                                isVCRregistered = false;
-                            }
-                            if (isDRRregistered) {
-                                unregisterReceiver(downloadReceiver);
-                                isDRRregistered = false;
-                            }
-                            SplashActivity.this.finish();
-//
-                        }
-                    };
-                    mCountDownTimer.start();
-
 
                 }
-
-
 //                new Handler().postDelayed(new Runnable() {
 //                    @Override
 //                    public void run() {

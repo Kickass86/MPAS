@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
     private String Username;
     private String Password;
     private String DeviceID;
+    private boolean first = true;
     //    private static String DeviceID;
 //    private static String username;
 //    private static String password;
@@ -114,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
         MESSAGES = new ArrayList<>();
         db = DatabaseHandler.getInstance(this);
         share = SharedPreferenceHandler.getInstance(this);
+        first = true;
 
 
     }
@@ -224,21 +226,26 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+//        if (share.GetStatus().equals(getString(R.string.OK)) & first) {
+////            GetMessagesfromDB();
+////            ShowMessages();
+//            GetMessages oo = new GetMessages();
+//            oo.execute("");
+//        }
+        if (first) {
+            UpdateUI(share.GetStatus());
+        }
+
 //        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 //        nMgr.cancelAll();
-//        if (share.GetStatus().equals(getString(R.string.OK))) {
-//            GetMessagesfromDB();
-//            ShowMessages();
-            GetMessages oo = new GetMessages();
-            oo.execute("");
-//        }
+
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.waiting_layout);
+//        setContentView(R.layout.waiting_layout);
         registerReceiver(broadcastReceiver, new IntentFilter("Alarm fire"));
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -247,6 +254,7 @@ public class MainActivity extends AppCompatActivity {
 //        String[] UserDetails = {share.GetUsername(), share.GetPassword(), share.GetDeviceID()};
 //        NetworkAsyncTask task = new NetworkAsyncTask(this);
 //        task.execute(UserDetails);
+        first = false;
 
         String state = share.GetStatus();
 
@@ -455,6 +463,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        first = true;
+    }
+
     private void attemptLogin(String username, String password, String DeviceID) {
 
 //        String result = getString(R.string.Invalid);
@@ -512,6 +526,7 @@ public class MainActivity extends AppCompatActivity {
 
         switch (state2) {
             case OK: {
+                setContentView(R.layout.messages_layout);
 //                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
 //                alarmIntent.setAction("Alarm");
 //                pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
@@ -566,7 +581,7 @@ public class MainActivity extends AppCompatActivity {
 //                    public void run() {
 //                try {
 //                    Thread.sleep(Toast.LENGTH_LONG); // As I am using LENGTH_LONG in Toast
-                MainActivity.this.finish();
+                finish();
                 startActivity(intent);
 //                } catch (Exception e) {
 //                    e.printStackTrace();

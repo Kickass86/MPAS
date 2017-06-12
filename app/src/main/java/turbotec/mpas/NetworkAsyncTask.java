@@ -389,8 +389,9 @@ class NetworkAsyncTask extends AsyncTask<Object, Void, String> {
                                         .setContentTitle(temp.getMessageTitle())
                                         .setContentIntent(ci)
                                         .setAutoCancel(true)
-                                        .setDefaults(Notification.DEFAULT_ALL)
-                                        .setVibrate(new long[]{1000, 1000, 1000, 1000, 1000})
+                                        .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS)
+//                                        .setDefaults(Notification.DEFAULT_ALL)
+//                                        .setVibrate(new long[]{1000, 1000, 1000, 1000, 1000})
                                         .setContentText(temp.getMessageBody());
 
 

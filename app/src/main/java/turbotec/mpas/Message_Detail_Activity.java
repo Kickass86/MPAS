@@ -94,7 +94,7 @@ public class Message_Detail_Activity extends Activity {
                         ContentValues values = new ContentValues();
                         values.put("Seen", true);
                         database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(ID)});
-                        database.close();
+//                        database.close();
 
                     }
 

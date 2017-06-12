@@ -3,6 +3,7 @@
     <string name="ID">Unique ID</string>
     <string name="DeviceID">Device Unique ID</string>
     <string name="Token">Token</string>
+    <string name="FileVersion">FileVersion</string>
     <string name="defaultValue">Not_Saved</string>
     <string name="PREFERENCE_FILE">turbotec.mpas.PREFERENCE_FILE</string>
     <string name="Username_Password_File">LoginDetails</string>

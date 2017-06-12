@@ -65,6 +65,17 @@ public class SharedPreferenceHandler {
     }
 
 
+    public void SaveFileVersion(String version) {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(context.getString(R.string.FileVersion), version);
+        editor.apply();
+
+    }
+
+
+
 
     public void SaveActivation(String Activated) {
 
@@ -116,6 +127,14 @@ public class SharedPreferenceHandler {
 
         SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
         return sharedPref.getString(context.getString(R.string.Token), context.getString(R.string.defaultValue));
+
+    }
+
+
+    public String GetFileVersion() {
+
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+        return sharedPref.getString(context.getString(R.string.FileVersion), context.getString(R.string.defaultValue));
 
     }
 

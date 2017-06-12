@@ -135,6 +135,7 @@ public class VersionCheck extends IntentService {
         broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
         broadcastIntent.putExtra(RESPONSE_MESSAGE, responseMessage);
         broadcastIntent.putExtra(REQUEST_DOWNLOAD, downloadString);
+        Log.e("Version Check", " +1");
         sendBroadcast(broadcastIntent);
 
     }
