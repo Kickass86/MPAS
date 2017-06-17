@@ -149,7 +149,7 @@ public class SendStatusAsyncTask extends AsyncTask {
                 for (String MID : MIDs) {
                     database.update("Messages", values, "MessageID  = ?", new String[]{MID});
                 }
-                database.close();
+//                database.close();
             } else if (response.toString().contains(MyContext.getString(R.string.Delivered))) {
 
                 ContentValues values = new ContentValues();
@@ -158,7 +158,7 @@ public class SendStatusAsyncTask extends AsyncTask {
                 for (String MID : MIDs) {
                     database.update("Messages", values, "MessageID  = ?", new String[]{MID});
                 }
-                database.close();
+//                database.close();
             }
 
         } catch (XmlPullParserException | IOException soapFault) {

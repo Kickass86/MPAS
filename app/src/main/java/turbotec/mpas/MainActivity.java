@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -48,6 +49,13 @@ public class MainActivity extends AppCompatActivity {
 //    private int Message_Number = 0;
     //    private SharedPreferenceHandler sp;
     private final SharedPreferenceHandler share;
+    private boolean isSelected = false;
+    private CustomAdapter adapt;
+    private int interval = 60000;
+    private String Username;
+    private String Password;
+    private String DeviceID;
+    private boolean first = false;
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -59,13 +67,19 @@ public class MainActivity extends AppCompatActivity {
 //                share.SaveLoginDetails(Username, Password);
 //                share.SaveDeviceID(DeviceID);
 //            }
-//            boolean b = intent.getBooleanExtra("New", false);
-//            if (b) {
+            boolean b = intent.getBooleanExtra("New", false);
+            if (b) {
+                UpdateUI(share.GetStatus());
 //                GetMessages oo = new GetMessages(); // TODO
 //                oo.execute("");
-//            }
+            }
 
-            UpdateUI(share.GetStatus());
+            if (first) {
+                GetMessagesfromDB();
+                ShowMessages();
+                first = false;
+            }
+
 
 //            if (share.GetStatus().equals(getString(R.string.OK))) {
 ////                GetMessagesfromDB();
@@ -78,11 +92,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
-    private int interval = 60000;
-    private String Username;
-    private String Password;
-    private String DeviceID;
-    private boolean first = true;
     //    private static String DeviceID;
 //    private static String username;
 //    private static String password;
@@ -115,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         MESSAGES = new ArrayList<>();
         db = DatabaseHandler.getInstance(this);
         share = SharedPreferenceHandler.getInstance(this);
-        first = true;
+        first = false;
 
 
     }
@@ -145,12 +154,49 @@ public class MainActivity extends AppCompatActivity {
     }
     //    private String Name;
 
-    @Override
-    protected void onDestroy() {
+    private static void GetMessagesfromDB() {
 
-        unregisterReceiver(broadcastReceiver);
-        super.onDestroy();
-//        unregisterReceiver(NotifyReceiver);
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+
+
+//        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
+        MESSAGES = new ArrayList<>();
+        SQLiteDatabase database = db.getWritableDatabase();
+        Cursor cursor = database.rawQuery("SELECT * " +
+                "FROM Messages ORDER BY Critical DESC, MessageID DESC;", null);
+
+        // looping through all rows and adding to list
+        try {
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        MessageObject MObj = new MessageObject();
+                        MObj.setMessageID(cursor.getInt(0));
+                        MObj.setMessageTitle(cursor.getString(1));
+                        MObj.setMessageBody(cursor.getString(2));
+                        MObj.setInsertDate(cursor.getString(3));
+                        MObj.setCritical("1".equals(cursor.getString(4)));
+                        MObj.setSeen("1".equals(cursor.getString(5)));
+
+                        MESSAGES.add(MObj);
+                    } while (cursor.moveToNext());
+                }
+                cursor.close();
+            }
+
+//                    } catch (Exception e) {
+//                        e.getStackTrace();
+//                    }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//            }
+//        }).start();
+
+
     }
 
 
@@ -177,51 +223,13 @@ public class MainActivity extends AppCompatActivity {
 //        return true;
 //    }
 
+    @Override
+    protected void onDestroy() {
 
-//    private static void GetMessagesfromDB() {
-//
-////        new Thread(new Runnable() {
-////            @Override
-////            public void run() {
-////                try {
-//
-//
-////        database =  db.getReadableDatabase(); execSQL("INSERT INTO Messages VALUES(1000,'IDUSER','TITLE23','BODY','2017-02-21',0); ")
-//        MESSAGES = new ArrayList<>();
-//        SQLiteDatabase database = db.getWritableDatabase();
-//        Cursor cursor = database.rawQuery("SELECT * " +
-//                "FROM Messages ORDER BY Critical DESC, MessageID DESC;", null);
-//
-//        // looping through all rows and adding to list
-//        try {
-//            if (cursor != null) {
-//                if (cursor.moveToFirst()) {
-//                    do {
-//                        MessageObject MObj = new MessageObject();
-//                        MObj.setMessageID(cursor.getInt(0));
-//                        MObj.setMessageTitle(cursor.getString(1));
-//                        MObj.setMessageBody(cursor.getString(2));
-//                        MObj.setInsertDate(cursor.getString(3));
-//                        MObj.setCritical("1".equals(cursor.getString(4)));
-//                        MObj.setSeen("1".equals(cursor.getString(5)));
-//
-//                        MESSAGES.add(MObj);
-//                    } while (cursor.moveToNext());
-//                }
-//                cursor.close();
-//            }
-//
-////                    } catch (Exception e) {
-////                        e.getStackTrace();
-////                    }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//                }
-////            }
-////        }).start();
-//
-//
-//    }
+        unregisterReceiver(broadcastReceiver);
+        super.onDestroy();
+//        unregisterReceiver(NotifyReceiver);
+    }
 
     @Override
     protected void onResume() {
@@ -232,9 +240,14 @@ public class MainActivity extends AppCompatActivity {
 //            GetMessages oo = new GetMessages();
 //            oo.execute("");
 //        }
-        if (first) {
-            UpdateUI(share.GetStatus());
-        }
+//        if (first) {
+//            UpdateUI(share.GetStatus());
+//        }
+        GetMessagesfromDB();
+        ShowMessages();
+//        adapt.notifyDataSetChanged();
+//        GetMessages oo = new GetMessages();
+//        oo.execute("");
 
 //        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 //        nMgr.cancelAll();
@@ -255,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
 //        NetworkAsyncTask task = new NetworkAsyncTask(this);
 //        task.execute(UserDetails);
         first = false;
+        isSelected = false;
 
         String state = share.GetStatus();
 
@@ -280,8 +294,10 @@ public class MainActivity extends AppCompatActivity {
 //                    if (share.GetActivation().equals(getString(R.string.Active))) {
 ////                    GetMessagesfromDB();
 ////                    ShowMessages();
-                GetMessages oo = new GetMessages();
-                oo.execute("");
+                GetMessagesfromDB();
+                ShowMessages();
+//                GetMessages oo = new GetMessages();
+//                oo.execute("");
 //                UpdateUI();
 //                    }
 
@@ -466,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        first = true;
+//        first = true;
     }
 
     private void attemptLogin(String username, String password, String DeviceID) {
@@ -504,8 +520,10 @@ public class MainActivity extends AppCompatActivity {
             Password = password;
             this.DeviceID = DeviceID;
             String[] Userdata = {username, password, DeviceID};
+            first = true;
             NetworkAsyncTask task = new NetworkAsyncTask(this);
             task.execute(Userdata);
+
 //            UpdateUI(username, password, DeviceID, null);
         }
 
@@ -540,10 +558,10 @@ public class MainActivity extends AppCompatActivity {
 ////                Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
 //                Log.i("Alarm", "Set");
 ////                if (share.GetActivation().equals(getString(R.string.Active))) {
-////                    GetMessagesfromDB();
-////                    ShowMessages();
-                GetMessages oo = new GetMessages();
-                oo.execute("");
+                GetMessagesfromDB();
+                ShowMessages();
+//                GetMessages oo = new GetMessages();
+//                oo.execute("");
 //                }
                 break;
             }
@@ -696,8 +714,10 @@ public class MainActivity extends AppCompatActivity {
 //                android.R.layout.simple_list_item_1,
 //                Tlist);
 
-        lv.setAdapter(new CustomAdapter(this, Tlist, Mlist, SList, IList, CList, SSList));
+        adapt = new CustomAdapter(this, Tlist, Mlist, SList, IList, CList, SSList);
+//        lv.setAdapter(new CustomAdapter(this, Tlist, Mlist, SList, IList, CList, SSList));
 
+        lv.setAdapter(adapt);
 //        lv.setAdapter(arrayAdapter);
 
     }
@@ -753,12 +773,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            ShowMessages();
+//            ShowMessages();
+            adapt.notifyDataSetChanged();
         }
     }
 
     public class CustomAdapter extends BaseAdapter {
         final Context context;
+        int num_selected;
         List<String> Titles;
         List<String> Bodies;
         List<Boolean> isSeen;
@@ -770,6 +792,7 @@ public class MainActivity extends AppCompatActivity {
         public CustomAdapter(MainActivity mainActivity, List<String> MessagesTitle, List<String> MessagesBody, List<Boolean> isSeen, List<Integer> IList, List<Boolean> CList, List<Boolean> SSList) {
 
 
+            num_selected = 0;
             context = mainActivity;
             Titles = MessagesTitle;
             Bodies = MessagesBody;
@@ -802,11 +825,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
             // TODO Auto-generated method stub
-            Holder holder = new Holder();
+            final Holder holder = new Holder();
             final View rowView;
             rowView = inflater.inflate(R.layout.list_row_layout, parent, false);
+
             holder.tv1 = (TextView) rowView.findViewById(R.id.title);
             holder.tv2 = (TextView) rowView.findViewById(R.id.body);
+            holder.cb = (CheckBox) rowView.findViewById(R.id.checkbox1);
             holder.iv = (ImageView) rowView.findViewById(R.id.state);
             holder.i2 = (ImageView) rowView.findViewById(R.id.Critical);
             holder.tv1.setText(Titles.get(position));
@@ -819,6 +844,13 @@ public class MainActivity extends AppCompatActivity {
             if (CList.get(position)) {
                 holder.i2.setImageResource(R.mipmap.ic_priority_high_black_24dp);
             }
+
+            if (num_selected > 0) {
+                holder.cb.setVisibility(View.VISIBLE);
+            } else {
+                holder.cb.setVisibility(View.GONE);
+            }
+
 
             rowView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -843,14 +875,88 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             });
+
+            rowView.setOnLongClickListener(new View.OnLongClickListener() {
+//                LinearLayout l = (LinearLayout) findViewById(R.id.linearLayout1);
+//                CheckBox c = (CheckBox) findViewById(R.id.checkbox1);
+//                CheckBox[] cb = new CheckBox[Titles.size()];
+//                Holder holder = new Holder();
+
+                //                CheckBox[] cbs = new CheckBox[5];
+                @Override
+                public boolean onLongClick(View v) {
+
+                    if ((num_selected == 1) & (holder.cb.isChecked())) {
+//                        for (int i = 0; i < Titles.size(); i++) {
+//                            l.removeViewInLayout(cb[i]);
+//                        }
+//                        l.removeView(c);
+                        holder.cb.setChecked(false);
+//                        c.setVisibility(View.GONE);
+                        num_selected--;
+                        isSelected = false;
+//                        notifyDataSetChanged();
+                    } else if (holder.cb.isChecked()) {
+                        holder.cb.setChecked(false);
+//                        holder.cb.setVisibility(View.GONE);
+                        num_selected--;
+                    } else {
+//                        c.setVisibility(View.VISIBLE);
+                        holder.cb.setVisibility(View.VISIBLE);
+
+
+//                            holder.cb.requestLayout();
+//                            notifyDataSetChanged();
+
+                        holder.cb.setChecked(true);
+
+//                            l.invalidate();
+//                            l.requestLayout();
+
+                        num_selected++;
+
+
+//                        for (int i = 0; i < Titles.size(); i++)
+//                        {
+//                            cb[i] = new CheckBox(context);
+//                            cb[i].setId(i);
+//                            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.FILL_PARENT);
+////                            params.weight = 1.0f;
+////                            params.gravity = Gravity.START;
+//                            params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+////                            cb[i].setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+//                            cb[i].setLayoutParams(params);
+//                            if(i == position)
+//                            {
+//                                cb[i].setChecked(true);
+//                            }
+////                            cb[i].setChecked(true);
+//                            l.addView(cb[i]);
+//
+//                        }
+
+
+//                        isSelected = true;
+                    }
+
+                    return true;
+                }
+            });
+
             return rowView;
         }
+
+//        @Override
+//        public void notifyDataSetChanged() {
+//            super.notifyDataSetChanged();
+//        }
 
         private class Holder {
             TextView tv1;
             TextView tv2;
             ImageView iv;
             ImageView i2;
+            CheckBox cb;
 
         }
 

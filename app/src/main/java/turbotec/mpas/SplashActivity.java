@@ -16,7 +16,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.File;
 
@@ -36,7 +35,7 @@ public class SplashActivity extends AppCompatActivity {
     private boolean isVCRregistered = false;
     private boolean isServiceStarted = false;
     private boolean isDRRregistered = false;
-    private int versionCode;
+    private int VersionCode;
     private Uri Download_Uri;
     private VersionCheckReceiver receiver;
     private long downloadReference;
@@ -143,7 +142,7 @@ public class SplashActivity extends AppCompatActivity {
         }
 
         //get the app version Code for checking
-        versionCode = pInfo.versionCode;
+        VersionCode = pInfo.versionCode;
         //display the current version in a TextView
         TextView versionText = (TextView) findViewById(R.id.versionName);
         versionText.setText(version);
@@ -165,6 +164,40 @@ public class SplashActivity extends AppCompatActivity {
             isDRRregistered = true;
         }
 
+        CountDownTimer mCountDownTimer;
+        if (Flag) {
+            i = bar.getProgress() / 12;
+        } else {
+            i = 0;
+        }
+
+
+        mCountDownTimer = new CountDownTimer(4000, 500) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                Log.v("Log_tag", "Tick of Progress" + i + millisUntilFinished);
+                i++;
+                bar.setProgress(i * 12);
+
+            }
+
+            @Override
+            public void onFinish() {
+                //Do what you want
+                i++;
+//                                bar.setProgress(i);
+                bar.setProgress(100);
+
+                Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
+
+                SplashActivity.this.startActivity(mainIntent);
+
+                finish();
+//
+            }
+        };
+        mCountDownTimer.start();
 
 
     }
@@ -212,7 +245,7 @@ public class SplashActivity extends AppCompatActivity {
 
                 myFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/MPAS-V" + fv + ".apk");
 
-                if (((latestVersion == 0) | (v > versionCode)) & (myFile.exists()))// file downloaded before
+                if (((latestVersion == 0) & (v > VersionCode)) & (myFile.exists()))// file downloaded before
                 {
                     Intent installIntent = new Intent(Intent.ACTION_VIEW);
 
@@ -235,7 +268,7 @@ public class SplashActivity extends AppCompatActivity {
                     try {
 //
 
-                        if ((latestVersion != 0) & (latestVersion > (versionCode))) {
+                        if ((latestVersion != 0) & (latestVersion > (VersionCode))) {
 
 
                             //check if we need to upgrade?
@@ -345,104 +378,105 @@ public class SplashActivity extends AppCompatActivity {
 //                        builder.create().show();
 //                    }
 
-                        } else {
-                            CountDownTimer mCountDownTimer;
-                            if (Flag) {
-                                i = bar.getProgress() / 12;
-                            } else {
-                                i = 0;
-                            }
-//                        bar.setProgress(i);
-                            mCountDownTimer = new CountDownTimer(4000, 500) {
-
-                                @Override
-                                public void onTick(long millisUntilFinished) {
-                                    Log.v("Log_tag", "Tick of Progress" + i + millisUntilFinished);
-                                    i++;
-                                    bar.setProgress(i * 12);
-
-                                }
-
-                                @Override
-                                public void onFinish() {
-                                    //Do what you want
-                                    i++;
-//                                bar.setProgress(i);
-                                    bar.setProgress(100);
-
-                                    Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
-//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                                    SplashActivity.this.startActivity(mainIntent);
-                                    if (isVCRregistered) {
-                                        unregisterReceiver(VersionCheckReceiver.this);
-                                        isVCRregistered = false;
-                                    }
-                                    if (isDRRregistered) {
-                                        unregisterReceiver(downloadReceiver);
-                                        isDRRregistered = false;
-                                    }
-                                    finish();
-//
-                                }
-                            };
-                            mCountDownTimer.start();
                         }
+//                        else {
+//                            CountDownTimer mCountDownTimer;
+//                            if (Flag) {
+//                                i = bar.getProgress() / 12;
+//                            } else {
+//                                i = 0;
+//                            }
+////                        bar.setProgress(i);
+//                            mCountDownTimer = new CountDownTimer(4000, 500) {
+//
+//                                @Override
+//                                public void onTick(long millisUntilFinished) {
+//                                    Log.v("Log_tag", "Tick of Progress" + i + millisUntilFinished);
+//                                    i++;
+//                                    bar.setProgress(i * 12);
+//
+//                                }
+//
+//                                @Override
+//                                public void onFinish() {
+//                                    //Do what you want
+//                                    i++;
+////                                bar.setProgress(i);
+//                                    bar.setProgress(100);
+//
+//                                    Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
+////                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+////                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+////                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+////                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//                                    SplashActivity.this.startActivity(mainIntent);
+//                                    if (isVCRregistered) {
+//                                        unregisterReceiver(VersionCheckReceiver.this);
+//                                        isVCRregistered = false;
+//                                    }
+//                                    if (isDRRregistered) {
+//                                        unregisterReceiver(downloadReceiver);
+//                                        isDRRregistered = false;
+//                                    }
+//                                    finish();
+////
+//                                }
+//                            };
+//                            mCountDownTimer.start();
+//                        }
 
 
                     } catch (Exception e) {
 
-                        e.printStackTrace();
-
-
-                        CountDownTimer mCountDownTimer;
-                        if (Flag) {
-                            i = bar.getProgress() / 12;
-                        } else {
-                            i = 0;
-                        }
-
-                        Toast.makeText(context, "Error while downloading!", Toast.LENGTH_SHORT);
-
-//                    bar.setProgress(i);
-                        mCountDownTimer = new CountDownTimer(4000, 500) {
-
-                            @Override
-                            public void onTick(long millisUntilFinished) {
-                                Log.v("Log_tag", "Tick of Progress" + i + millisUntilFinished);
-                                i++;
-                                bar.setProgress(i * 12);
-
-                            }
-
-                            @Override
-                            public void onFinish() {
-                                //Do what you want
-                                i++;
-//                            bar.setProgress(i);
-                                bar.setProgress(100);
-
-                                Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
-//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                                SplashActivity.this.startActivity(mainIntent);
-                                if (isVCRregistered) {
-                                    unregisterReceiver(VersionCheckReceiver.this);
-                                    isVCRregistered = false;
-                                }
-                                if (isDRRregistered) {
-                                    unregisterReceiver(downloadReceiver);
-                                    isDRRregistered = false;
-                                }
-                                finish();
+//                        e.printStackTrace();
 //
-                            }
-                        };
-                        mCountDownTimer.start();
+//
+//                        CountDownTimer mCountDownTimer;
+//                        if (Flag) {
+//                            i = bar.getProgress() / 12;
+//                        } else {
+//                            i = 0;
+//                        }
+//
+//                        Toast.makeText(context, "Error while downloading!", Toast.LENGTH_SHORT);
+//
+////                    bar.setProgress(i);
+//                        mCountDownTimer = new CountDownTimer(4000, 500) {
+//
+//                            @Override
+//                            public void onTick(long millisUntilFinished) {
+//                                Log.v("Log_tag", "Tick of Progress" + i + millisUntilFinished);
+//                                i++;
+//                                bar.setProgress(i * 12);
+//
+//                            }
+//
+//                            @Override
+//                            public void onFinish() {
+//                                //Do what you want
+//                                i++;
+////                            bar.setProgress(i);
+//                                bar.setProgress(100);
+//
+//                                Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
+////                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+////                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+////                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+////                            mainIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//                                SplashActivity.this.startActivity(mainIntent);
+//                                if (isVCRregistered) {
+//                                    unregisterReceiver(VersionCheckReceiver.this);
+//                                    isVCRregistered = false;
+//                                }
+//                                if (isDRRregistered) {
+//                                    unregisterReceiver(downloadReceiver);
+//                                    isDRRregistered = false;
+//                                }
+//                                finish();
+////
+//                            }
+//                        };
+//                        mCountDownTimer.start();
 
 
                     }
