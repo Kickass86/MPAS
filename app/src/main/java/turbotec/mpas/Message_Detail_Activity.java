@@ -19,7 +19,7 @@ import android.widget.TextView;
 public class Message_Detail_Activity extends Activity {
 
     private static DatabaseHandler db;
-    //    private final Context context;
+    //    private final Context menu;
     //    SQLiteDatabase database;
     private Button DelBut;
     private Integer ID = 1;

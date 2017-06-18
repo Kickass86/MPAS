@@ -38,18 +38,18 @@ public class SharedPreferenceHandler {
 
 //    public void SavePublickey(String pubkey) {
 //
-//        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+//        SharedPreferences sharedPref = menu.getSharedPreferences(menu.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
 //        SharedPreferences.Editor editor = sharedPref.edit();
-//        editor.putString(context.getString(R.string.PublicKey), pubkey);
+//        editor.putString(menu.getString(R.string.PublicKey), pubkey);
 //        editor.apply();
 //
 //    }
 
 //    public void SavePrivatekey(String privkey) {
 //
-//        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+//        SharedPreferences sharedPref = menu.getSharedPreferences(menu.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
 //        SharedPreferences.Editor editor = sharedPref.edit();
-//        editor.putString(context.getString(R.string.PrivateKey), privkey);
+//        editor.putString(menu.getString(R.string.PrivateKey), privkey);
 //        editor.apply();
 //
 //    }
@@ -89,9 +89,9 @@ public class SharedPreferenceHandler {
 
 //    public void SaveUserID(String userID) {
 //
-//        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+//        SharedPreferences sharedPref = menu.getSharedPreferences(menu.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
 //        SharedPreferences.Editor editor = sharedPref.edit();
-//        editor.putString(context.getString(R.string.UID), userID);
+//        editor.putString(menu.getString(R.string.UID), userID);
 //        editor.apply();
 //
 //    }
@@ -141,8 +141,8 @@ public class SharedPreferenceHandler {
 
 //    public String GetUserID() {
 //
-//        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
-//        return sharedPref.getString(context.getString(R.string.UID), context.getString(R.string.defaultValue));
+//        SharedPreferences sharedPref = menu.getSharedPreferences(menu.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+//        return sharedPref.getString(menu.getString(R.string.UID), menu.getString(R.string.defaultValue));
 //
 //    }
 
@@ -165,15 +165,15 @@ public class SharedPreferenceHandler {
 
 //    public String GetPublicKey() {
 //
-//        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
-//        return sharedPref.getString(context.getString(R.string.PublicKey), context.getString(R.string.defaultValue));
+//        SharedPreferences sharedPref = menu.getSharedPreferences(menu.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+//        return sharedPref.getString(menu.getString(R.string.PublicKey), menu.getString(R.string.defaultValue));
 //
 //    }
 
 //    public String GetPrivateKey() {
 //
-//        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
-//        return sharedPref.getString(context.getString(R.string.PrivateKey), context.getString(R.string.defaultValue));
+//        SharedPreferences sharedPref = menu.getSharedPreferences(menu.getString(R.string.PREFERENCE_FILE), Context.MODE_PRIVATE);
+//        return sharedPref.getString(menu.getString(R.string.PrivateKey), menu.getString(R.string.defaultValue));
 //
 //    }
 

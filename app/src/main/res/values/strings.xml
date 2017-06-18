@@ -5,6 +5,8 @@
     <string name="Token">Token</string>
     <string name="FileVersion">FileVersion</string>
     <string name="defaultValue">Not_Saved</string>
+    <string name="menu_read">read</string>
+    <string name="menu_delete">delete</string>
     <string name="PREFERENCE_FILE">turbotec.mpas.PREFERENCE_FILE</string>
     <string name="Username_Password_File">LoginDetails</string>
     <string name="UID">UID</string>

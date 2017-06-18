@@ -438,7 +438,7 @@ public class SplashActivity extends AppCompatActivity {
 //                            i = 0;
 //                        }
 //
-//                        Toast.makeText(context, "Error while downloading!", Toast.LENGTH_SHORT);
+//                        Toast.makeText(menu, "Error while downloading!", Toast.LENGTH_SHORT);
 //
 ////                    bar.setProgress(i);
 //                        mCountDownTimer = new CountDownTimer(4000, 500) {

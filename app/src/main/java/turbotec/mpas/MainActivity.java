@@ -18,11 +18,14 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -49,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
 //    private int Message_Number = 0;
     //    private SharedPreferenceHandler sp;
     private final SharedPreferenceHandler share;
+    private Menu mMenu;
     private boolean isSelected = false;
     private CustomAdapter adapt;
     private int interval = 60000;
@@ -98,13 +102,13 @@ public class MainActivity extends AppCompatActivity {
     private PendingIntent pendingIntent;
     //    BroadcastReceiver NotifyReceiver = new BroadcastReceiver() {
 //        @Override
-//        public void onReceive(Context context, Intent intent) {
+//        public void onReceive(Context menu, Intent intent) {
 //
 //            Bundle extras = intent.getExtras();
 //
 //
 //            NotificationCompat.Builder mBuilder =
-//                    new NotificationCompat.Builder(context)
+//                    new NotificationCompat.Builder(menu)
 //                            .setSmallIcon(R.mipmap.ic_launcher)
 //                            .setContentTitle(extras.getString("Title"))
 //                            .setContentText("Hello ");
@@ -232,6 +236,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+//        menu.findItem(R.id.menu_read).setVisible(false);
+//        menu.findItem(R.id.menu_delete).setVisible(false);
+        mMenu = menu;
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 //        if (share.GetStatus().equals(getString(R.string.OK)) & first) {
@@ -243,6 +256,10 @@ public class MainActivity extends AppCompatActivity {
 //        if (first) {
 //            UpdateUI(share.GetStatus());
 //        }
+        if (mMenu != null) {
+            mMenu.clear();
+        }
+        isSelected = false;
         GetMessagesfromDB();
         ShowMessages();
 //        adapt.notifyDataSetChanged();
@@ -678,6 +695,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // handle item selection
+        switch (item.getItemId()) {
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     private void ShowMessages() {
 
         setContentView(R.layout.messages_layout);
@@ -720,6 +748,54 @@ public class MainActivity extends AppCompatActivity {
         lv.setAdapter(adapt);
 //        lv.setAdapter(arrayAdapter);
 
+
+//        registerForContextMenu(lv);
+//
+//        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+//        lv.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+//
+//            @Override
+//            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+//                // TODO Auto-generated method stub
+//                return false;
+//            }
+//
+//            @Override
+//            public void onDestroyActionMode(ActionMode mode) {
+//                // TODO Auto-generated method stub
+//            }
+//
+//            @Override
+//            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+//                // TODO Auto-generated method stub
+//
+//                MenuInflater inflater = getMenuInflater();
+//                inflater.inflate(R.menu.menu, menu);
+//                return true;
+//            }
+//
+//            @Override
+//            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+//                // TODO Auto-generated method stub
+//                return false;
+//            }
+//
+//            @Override
+//            public void onItemCheckedStateChanged(ActionMode mode, int position,
+//                                                  long id, boolean checked) {
+//                // TODO Auto-generated method stub
+//            }
+//        });
+
+
+
+
+
+
+
+    }
+
+    private void deleteSelectedItems() {
     }
 
     private enum State {
@@ -781,6 +857,7 @@ public class MainActivity extends AppCompatActivity {
     public class CustomAdapter extends BaseAdapter {
         final Context context;
         int num_selected;
+        CheckBox c;
         List<String> Titles;
         List<String> Bodies;
         List<Boolean> isSeen;
@@ -802,6 +879,7 @@ public class MainActivity extends AppCompatActivity {
             this.SSList = SSList;
             inflater = (LayoutInflater) context.
                     getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            c = (CheckBox) findViewById(R.id.checkbox1);
         }
 
         @Override
@@ -820,6 +898,11 @@ public class MainActivity extends AppCompatActivity {
         public long getItemId(int position) {
             // TODO Auto-generated method stub
             return position;
+        }
+
+        private void countCheck(boolean isChecked) {
+
+            num_selected += isChecked ? 1 : -1;
         }
 
         @Override
@@ -845,10 +928,15 @@ public class MainActivity extends AppCompatActivity {
                 holder.i2.setImageResource(R.mipmap.ic_priority_high_black_24dp);
             }
 
+
             if (num_selected > 0) {
                 holder.cb.setVisibility(View.VISIBLE);
-            } else {
+                mMenu.findItem(Menu.FIRST).setVisible(true);
+                mMenu.findItem(Menu.FIRST + 1).setVisible(true);
+            } else if (isSelected) {
                 holder.cb.setVisibility(View.GONE);
+                mMenu.findItem(Menu.FIRST).setVisible(false);
+                mMenu.findItem(Menu.FIRST + 1).setVisible(false);
             }
 
 
@@ -856,7 +944,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     // TODO Auto-generated method stub
-//                    Toast.makeText(context, "You Clicked " + Titles.get(position), Toast.LENGTH_LONG).show();
+//                    Toast.makeText(menu, "You Clicked " + Titles.get(position), Toast.LENGTH_LONG).show();
                     rowView.setBackgroundColor(context.getResources().getColor(R.color.SelectColor1));
                     Intent showActivity = new Intent(MainActivity.this, Message_Detail_Activity.class);
                     Bundle bundle = new Bundle();
@@ -878,7 +966,7 @@ public class MainActivity extends AppCompatActivity {
 
             rowView.setOnLongClickListener(new View.OnLongClickListener() {
 //                LinearLayout l = (LinearLayout) findViewById(R.id.linearLayout1);
-//                CheckBox c = (CheckBox) findViewById(R.id.checkbox1);
+CheckBox c = (CheckBox) findViewById(R.id.checkbox1);
 //                CheckBox[] cb = new CheckBox[Titles.size()];
 //                Holder holder = new Holder();
 
@@ -893,50 +981,62 @@ public class MainActivity extends AppCompatActivity {
 //                        l.removeView(c);
                         holder.cb.setChecked(false);
 //                        c.setVisibility(View.GONE);
+                        mMenu.findItem(Menu.FIRST).setVisible(false);
+                        mMenu.findItem(Menu.FIRST + 1).setVisible(false);
                         num_selected--;
-                        isSelected = false;
+//                        isSelected = false;
 //                        notifyDataSetChanged();
                     } else if (holder.cb.isChecked()) {
                         holder.cb.setChecked(false);
 //                        holder.cb.setVisibility(View.GONE);
                         num_selected--;
                     } else {
-//                        c.setVisibility(View.VISIBLE);
-                        holder.cb.setVisibility(View.VISIBLE);
+                        if (c != null) {
+                            c.setVisibility(View.VISIBLE);
+                        }
+                        CheckBox.OnCheckedChangeListener checkListener = new CheckBox.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                countCheck(isChecked);
+                                Log.i("MAIN", num_selected + "");
+                            }
+                        };
+                        c = (CheckBox) findViewById(R.id.checkbox1);
+                        if (c != null) {
+                            c.setOnCheckedChangeListener(checkListener);
+                        }
 
-
-//                            holder.cb.requestLayout();
+//                        holder.cb.invalidate();
+//                        holder.cb.requestLayout();
 //                            notifyDataSetChanged();
-
+                        holder.cb.setVisibility(View.VISIBLE);
                         holder.cb.setChecked(true);
+
+//                        Menu mMenu = (Menu) findViewById(R.id.group);
+                        if (!isSelected) {
+                            mMenu.clear();
+                            MenuItem item1 = mMenu.add(Menu.NONE, Menu.FIRST, 10, R.string.menu_delete);
+                            item1.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+                            item1.setIcon(R.mipmap.ic_delete_black_24dp);
+
+                            MenuItem item2 = mMenu.add(Menu.NONE, Menu.FIRST + 1, 10, R.string.menu_read);
+                            item2.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+                            item2.setIcon(R.mipmap.ic_done_all_black_24dp);
+
+                            isSelected = true;
+                        } else {
+                            mMenu.findItem(Menu.FIRST).setVisible(true);
+                            mMenu.findItem(Menu.FIRST + 1).setVisible(true);
+                        }
+                        num_selected++;
+
 
 //                            l.invalidate();
 //                            l.requestLayout();
 
-                        num_selected++;
 
 
-//                        for (int i = 0; i < Titles.size(); i++)
-//                        {
-//                            cb[i] = new CheckBox(context);
-//                            cb[i].setId(i);
-//                            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.FILL_PARENT);
-////                            params.weight = 1.0f;
-////                            params.gravity = Gravity.START;
-//                            params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-////                            cb[i].setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-//                            cb[i].setLayoutParams(params);
-//                            if(i == position)
-//                            {
-//                                cb[i].setChecked(true);
-//                            }
-////                            cb[i].setChecked(true);
-//                            l.addView(cb[i]);
-//
-//                        }
 
-
-//                        isSelected = true;
                     }
 
                     return true;

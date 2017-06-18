@@ -54,7 +54,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 
         mContext = context;
-//        share = SharedPreferenceHandler.getInstance(context);
+//        share = SharedPreferenceHandler.getInstance(menu);
 
         String action = intent.getAction();
         if (action.equals(BOOT_COMPLETED) ||
