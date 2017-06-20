@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -52,6 +53,13 @@ public class MainActivity extends AppCompatActivity {
 //    private int Message_Number = 0;
     //    private SharedPreferenceHandler sp;
     private final SharedPreferenceHandler share;
+    List<String> Mlist = new ArrayList<>(); //Messages List
+    List<String> Tlist = new ArrayList<>(); //Title List
+    //        List<String> Dlist = new ArrayList<>(); //Date List
+    List<Boolean> SList = new ArrayList<>(); //is Seen
+    List<Integer> IList = new ArrayList<>(); //Message ID
+    List<Boolean> CList = new ArrayList<>(); //Critical
+    List<Boolean> SSList = new ArrayList<>(); //SendSeen
     private Menu mMenu;
     private boolean isSelected = false;
     private CustomAdapter adapt;
@@ -65,24 +73,26 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
 
 
-//            if (share.GetStatus().equals(getString(R.string.OK)))
+            String action = intent.getAction();
+            if (action.equals("Alarm fire")) {
+                /// /            if (share.GetStatus().equals(getString(R.string.OK)))
 //            {
 //                setContentView(R.layout.messages_layout);
 //                share.SaveLoginDetails(Username, Password);
 //                share.SaveDeviceID(DeviceID);
 //            }
-            boolean b = intent.getBooleanExtra("New", false);
-            if (b) {
-                UpdateUI(share.GetStatus());
+                boolean b = intent.getBooleanExtra("New", false);
+                if (b) {
+                    UpdateUI(share.GetStatus());
 //                GetMessages oo = new GetMessages(); // TODO
 //                oo.execute("");
-            }
+                }
 
-            if (first) {
-                GetMessagesfromDB();
-                ShowMessages();
-                first = false;
-            }
+                if ((first) & (share.GetStatus().equals("OK"))) {
+                    GetMessagesfromDB();
+                    ShowMessages();
+                    first = false;
+                }
 
 
 //            if (share.GetStatus().equals(getString(R.string.OK))) {
@@ -92,7 +102,8 @@ public class MainActivity extends AppCompatActivity {
 //                oo.execute("");
 //            }
 
-            Log.i("is this ", "BroadcastReceiver");
+                Log.i("is this ", "BroadcastReceiver");
+            }
 
         }
     };
@@ -260,8 +271,10 @@ public class MainActivity extends AppCompatActivity {
             mMenu.clear();
         }
         isSelected = false;
-        GetMessagesfromDB();
-        ShowMessages();
+        if (share.GetStatus().equals("OK")) {
+            GetMessagesfromDB();
+            ShowMessages();
+        }
 //        adapt.notifyDataSetChanged();
 //        GetMessages oo = new GetMessages();
 //        oo.execute("");
@@ -695,15 +708,69 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void MarkRead() {
+
+
+        ListView lv = (ListView) findViewById(R.id.list1);
+        CheckBox cb;
+
+        SQLiteDatabase database = db.getWritableDatabase();
+        for (int i = 0; i < lv.getCount(); i++) {
+            cb = (CheckBox) lv.getChildAt(i).findViewById(R.id.checkbox1);
+
+            if (cb.isChecked()) {
+                Integer ID;
+                ID = MESSAGES.get(i).getMessageID();
+                ContentValues values = new ContentValues();
+                values.put("Seen", true);
+                database.update("Messages", values, "MessageID  = ?", new String[]{String.valueOf(ID)});
+            }
+        }
+        database.close();
+        isSelected = false;
+        mMenu.clear();
+        UpdateUI(share.GetStatus());
+
+    }
+
+
+    private void Markdelete() {
+
+        ListView lv = (ListView) findViewById(R.id.list1);
+        CheckBox cb;
+
+        SQLiteDatabase database = db.getWritableDatabase();
+        for (int i = 0; i < lv.getCount(); i++) {
+            cb = (CheckBox) lv.getChildAt(i).findViewById(R.id.checkbox1);
+
+            if (cb.isChecked()) {
+                Integer ID;
+                ID = MESSAGES.get(i).getMessageID();
+                database.delete("Messages", "MessageID  = ?", new String[]{String.valueOf(ID)});
+            }
+        }
+        database.close();
+        isSelected = false;
+        mMenu.clear();
+        UpdateUI(share.GetStatus());
+
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // handle item selection
         switch (item.getItemId()) {
-
+            case Menu.FIRST:
+                Markdelete();
+                break;
+            case Menu.FIRST + 1:
+                MarkRead();
+                break;
             default:
-                return super.onOptionsItemSelected(item);
+
         }
+        return super.onOptionsItemSelected(item);
     }
 
     private void ShowMessages() {
@@ -712,13 +779,13 @@ public class MainActivity extends AppCompatActivity {
         ListView lv = (ListView) findViewById(R.id.list1);
 
 
-        List<String> Mlist = new ArrayList<>(); //Messages List
-        List<String> Tlist = new ArrayList<>(); //Title List
-//        List<String> Dlist = new ArrayList<>(); //Date List
-        List<Boolean> SList = new ArrayList<>(); //is Seen
-        List<Integer> IList = new ArrayList<>(); //Message ID
-        List<Boolean> CList = new ArrayList<>(); //Critical
-        List<Boolean> SSList = new ArrayList<>(); //SendSeen
+        Mlist = new ArrayList<>(); //Messages List
+        Tlist = new ArrayList<>(); //Title List
+//      Dlist = new ArrayList<>(); //Date List
+        SList = new ArrayList<>(); //is Seen
+        IList = new ArrayList<>(); //Message ID
+        CList = new ArrayList<>(); //Critical
+        SSList = new ArrayList<>(); //SendSeen
 
 //        for (int i = Message_Number; i < MESSAGES.size(); i++) {
         for (int i = 0; i < MESSAGES.size(); i++) {

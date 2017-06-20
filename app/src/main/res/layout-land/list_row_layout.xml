@@ -6,6 +6,15 @@
     android:layout_centerInParent="true">
 
 
+    <CheckBox
+        android:id="@+id/checkbox1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:checked="false"
+        android:visibility="gone" />
+
+
     <TextView
         android:id="@+id/title"
         android:layout_width="0dp"
